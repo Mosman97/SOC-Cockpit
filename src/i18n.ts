@@ -32,7 +32,8 @@ updateDocumentLanguage();
 
 /** Translate presentation strings only; persisted enum values stay canonical. */
 export function t(text: string | undefined | null, values?: Record<string, unknown>): string {
-  return text ? String(i18n.t(text, { defaultValue: text, ...values })) : '';
+  if (!text || !i18n.exists(text, values)) return text ?? '';
+  return String(i18n.t(text, { defaultValue: text, ...values }));
 }
 
 export function getLocale(): string {

@@ -183,7 +183,7 @@ function ReportDocument(props: { report: ReportKey; app: AppSnapshot; period: Pe
         <div>
           <div className="rpt-org">{settings.orgName}</div>
           <h1 className="rpt-title">{t(titles[report])}</h1>
-          <div className="rpt-subtitle">{t(subtitle)}</div>
+          <div className="rpt-subtitle">{subtitle}</div>
         </div>
         <dl className="rpt-meta">
           <div><dt>{t("Prepared by")}</dt><dd>{preparedBy}</dd></div>
@@ -200,7 +200,7 @@ function ReportDocument(props: { report: ReportKey; app: AppSnapshot; period: Pe
 function Section({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
   return (
     <section className="rpt-section">
-      <h2>{t(title)}{note ? <span className="rpt-section-note">{t(note)}</span> : null}</h2>
+      <h2>{title}{note ? <span className="rpt-section-note">{note}</span> : null}</h2>
       {children}
     </section>
   );
@@ -295,7 +295,7 @@ function BarChart({ data, height = 120, valueLabel }: { data: Array<{ label: str
               return segment.value > 0 ? <rect key={segIndex} x={x} y={y} width={barWidth} height={h} fill={segment.color} rx={1} /> : null;
             })}
             {data.length <= 16 || index % Math.ceil(data.length / 16) === 0 ? (
-              <text x={x + barWidth / 2} y={height - 5} className="rpt-chart-axis" textAnchor="middle">{t(item.label)}</text>
+              <text x={x + barWidth / 2} y={height - 5} className="rpt-chart-axis" textAnchor="middle">{item.label}</text>
             ) : null}
           </g>
         );
@@ -385,7 +385,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
         <SlaPriorityTable report={report} settings={settings} />
       </Section>
 
-      <Section title={t("Agreed SLA targets")} note={report.customTargets ? `${customer} – customer-specific SLA` : 'standard SLA'}>
+      <Section title={t("Agreed SLA targets")} note={report.customTargets ? t('{{customer}} – customer-specific SLA', { customer }) : t('standard SLA')}>
         <table className="rpt-table compact">
           <thead><tr><th>{t("Priority")}</th><th className="num">{t("Detect within")}</th><th className="num">{t("Acknowledge within")}</th><th className="num">{t("Resolve within")}</th></tr></thead>
           <tbody>
@@ -639,7 +639,7 @@ function WorkforceReportBody({ app, period, settings }: { app: AppSnapshot; peri
           <thead>
             <tr>
               <th>{t("Analyst")}</th>
-              {report.codes.map((code) => <th key={code.code} className="num" title={t(code.label)}>{code.code}</th>)}
+              {report.codes.map((code) => <th key={code.code} className="num" title={code.label}>{code.code}</th>)}
               <th className="num">{t("Worked")}</th><th className="num">{t("Weekday")}</th><th className="num">{t("Weekend")}</th><th className="num">{t("Off")}</th><th className="num">{t("Leave")}</th><th className="num">{t("Sick/abs.")}</th>
             </tr>
           </thead>

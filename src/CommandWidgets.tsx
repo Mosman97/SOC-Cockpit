@@ -241,7 +241,7 @@ export function RiskDecisions({ app }: { app: AppSnapshot }) {
       </div>
       <div className="risk-legend"><span><i style={{ background: 'var(--risk)' }} />{t("Risk")} {risk}</span><span><i style={{ background: 'var(--watch)' }} />{t("Watch")} {watch}</span><span><i style={{ background: 'var(--healthy)' }} />{t("OK")} {healthy}</span></div>
       <ul className="risk-list">
-        {topRisk.length ? topRisk.map((i) => <li key={i.id} title={t(i.title)}>{i.title}</li>) : <li className="muted">{t("No risk-flagged issues.")}</li>}
+        {topRisk.length ? topRisk.map((i) => <li key={i.id} title={i.title}>{i.title}</li>) : <li className="muted">{t("No risk-flagged issues.")}</li>}
       </ul>
     </div>
   );
@@ -562,7 +562,7 @@ export function ObjectivesProjects({ app }: { app: AppSnapshot }) {
     <div className="op-wrap">
       <div className="op-list">
         {rows.map((r) => (
-          <div className="op-row" key={r.id} title={t(r.label)}>
+          <div className="op-row" key={r.id} title={r.label}>
             <span className="op-kind">{r.kind}</span>
             <span className="op-label">{r.label}</span>
             <span className="op-track"><span className="op-fill" style={{ width: `${Math.max(3, Math.min(100, r.progress))}%`, background: healthColor(r.health) }} /></span>

@@ -1196,7 +1196,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                     </tr>
                     {group.staff.map((member) => (
                       <tr key={member.name}>
-                        <th className="planner-staff-name" title={t(`${member.name}${member.role ? ` · ${member.role}` : ''}`)}>
+                        <th className="planner-staff-name" title={`${member.name}${member.role ? ` · ${member.role}` : ''}`}>
                           <span>{member.name}</span>
                           {member.isLead ? <small>{t("Lead")}</small> : null}
                         </th>
@@ -1222,7 +1222,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                                   stagePlannerCell(member.name, rosterDate);
                                 }
                               }}
-                              title={t(label ? `${member.name} · ${rosterDate} · ${label.label} ${label.hours ? `(${label.hours})` : ''}` : `${member.name} · ${rosterDate} · Unassigned`)}
+                              title={label ? `${member.name} · ${rosterDate} · ${label.label}${label.hours ? ` (${label.hours})` : ''}` : `${member.name} · ${rosterDate} · ${t('Unassigned')}`}
                             >
                               <span className="planner-cell-code">{label?.code ?? ''}</span>
                             </td>
@@ -1453,7 +1453,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                           <strong className="standup-task-title">{item.title}</strong>
                           <div className="standup-task-meta">
                             <span className={`scope quad-${item.quadrant.toLowerCase()}`}>{t(item.quadrant)}</span>
-                            {item.objectiveId ? (() => { const obj = objectiveById.get(item.objectiveId); return obj ? <button type="button" className="link-chip" title={t(obj.title)} onClick={() => openLinkedTarget('objective', item.objectiveId)}>{t("OBJ-{{value0}}", { value0: obj.id })}</button> : null; })() : null}
+                            {item.objectiveId ? (() => { const obj = objectiveById.get(item.objectiveId); return obj ? <button type="button" className="link-chip" title={obj.title} onClick={() => openLinkedTarget('objective', item.objectiveId)}>{t("OBJ-{{value0}}", { value0: obj.id })}</button> : null; })() : null}
                             <span className={item.assignee ? 'standup-assignee' : 'standup-assignee empty'}>{item.assignee || 'No assignee set'}</span>
                             {item.dueTime ? <span>{t("Due")} {item.dueTime}</span> : null}
                           </div>
@@ -1680,7 +1680,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                   <article key={item.id} className={`register-tile issue-health-${String(item.health).toLowerCase()}`}>
                     <header className="register-tile-head">
                       <span className="scope">{item.scope}</span>
-                      <span className="register-tile-title" title={t(item.title)}>{item.title}</span>
+                      <span className="register-tile-title" title={item.title}>{item.title}</span>
                       {dot(item.health)}
                     </header>
                     <div className="register-tile-status muted">{t(item.status)}</div>
@@ -1841,7 +1841,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                   <article key={item.id} className={`register-tile issue-health-${String(item.health).toLowerCase()}`}>
                     <header className="register-tile-head">
                       <span className="scope">{item.scope}</span>
-                      <span className="register-tile-title" title={t(item.title)}>{item.title}</span>
+                      <span className="register-tile-title" title={item.title}>{item.title}</span>
                       {dot(item.health)}
                     </header>
                     <dl className="register-tile-meta">
@@ -1852,7 +1852,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                       <div><dt>{t("Due")}</dt><dd>{objectiveDueLabel(item.due)}</dd></div>
                     </dl>
                     <div className="register-tile-progress"><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div><span className="muted">{item.progress}%</span></div>
-                    {item.attachmentPath ? <a className="doc-link register-tile-doc" href={item.attachmentPath} target="_blank" rel="noreferrer" title={t(item.attachmentName || 'Open')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || 'Open'}</span></a> : null}
+                    {item.attachmentPath ? <a className="doc-link register-tile-doc" href={item.attachmentPath} target="_blank" rel="noreferrer" title={item.attachmentName || t('Open document')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || t('Open document')}</span></a> : null}
                     {item.summary ? <p className="register-tile-summary">{item.summary}</p> : null}
                     <div className="register-tile-actions">
                       <EditButton onClick={() => { setObjectiveForm({ scope: item.scope, title: item.title, summary: item.summary, owner: item.owner, assignedTo: item.assignedTo ?? '', due: isDateKey(item.due) ? item.due : '', progress: item.progress, health: item.health }); setObjectiveFile(null); setEditor('objective', item.id); }} label={t("Edit objective")} />
@@ -1894,8 +1894,8 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                       <td className="objective-title-cell"><span>{item.title}</span></td>
                       <td className="muted">{item.owner}</td>
                       <td className="muted">{item.assignedTo || '—'}</td>
-                      <td className="muted">{(() => { const refs = issuesForObjective(item.id); return refs.length ? <button type="button" className="link-chip" title={t(refs.map((issue) => issue.title).join('\n'))} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'; })()}</td>
-                      <td className="doc-cell">{item.attachmentPath ? <a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer" title={t(item.attachmentName || 'Open')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || 'Open'}</span></a> : <span className="muted">{t("No file")}</span>}</td>
+                      <td className="muted">{(() => { const refs = issuesForObjective(item.id); return refs.length ? <button type="button" className="link-chip" title={refs.map((issue) => issue.title).join('\n')} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'; })()}</td>
+                      <td className="doc-cell">{item.attachmentPath ? <a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer" title={item.attachmentName || t('Open document')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || t('Open document')}</span></a> : <span className="muted">{t("No file")}</span>}</td>
                       <td className="muted">{objectiveDueLabel(item.due)}</td>
                       <td><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div></td>
                       <td className="ta-r"><div className="action-row"><EditButton onClick={() => { setObjectiveForm({ scope: item.scope, title: item.title, summary: item.summary, owner: item.owner, assignedTo: item.assignedTo ?? '', due: isDateKey(item.due) ? item.due : '', progress: item.progress, health: item.health }); setObjectiveFile(null); setEditor('objective', item.id); }} label={t("Edit objective")} /><DeleteButton onClick={() => void deleteRecord('objective', item.id)} label={t("Delete objective")} /></div></td>
@@ -1905,17 +1905,17 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                         <td></td>
                         <td colSpan={9}>
                           <div className="objective-summary-text">{item.summary || 'No summary recorded.'}</div>
-                          {item.attachmentPath ? <div className="linked-issues"><span className="linked-issues-label">{t("Document:")}</span><a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer"><Paperclip size={12} /> {item.attachmentName || 'Open document'}</a></div> : null}
+                          {item.attachmentPath ? <div className="linked-issues"><span className="linked-issues-label">{t("Document:")}</span><a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer"><Paperclip size={12} /> {item.attachmentName || t('Open document')}</a></div> : null}
                           {(() => { const refs = issuesForObjective(item.id); return refs.length ? (
                             <div className="linked-issues">
                               <span className="linked-issues-label">{t("Linked issues:")}</span>
-                              {refs.map((issue) => <button key={issue.id} type="button" className="link-chip" title={t(issue.title)} onClick={() => openReferencingIssues([issue.id])}>{t("ISS-{{value0}} · {{value1}}", { value0: issue.id, value1: issue.title })}</button>)}
+                              {refs.map((issue) => <button key={issue.id} type="button" className="link-chip" title={issue.title} onClick={() => openReferencingIssues([issue.id])}>{t("ISS-{{value0}} · {{value1}}", { value0: issue.id, value1: issue.title })}</button>)}
                             </div>
                           ) : null; })()}
                           {(() => { const linked = tasksForObjective(item.id); return linked.length ? (
                             <div className="linked-issues">
                               <span className="linked-issues-label">{t("Linked standups (")}{linked.reduce((sum, task) => sum + task.durationMinutes, 0)} {t("min):")}</span>
-                              {linked.map((task) => <span key={task.id} className="link-chip" title={t(`${task.lead} · ${task.status}`)}>{`${task.taskDate} · ${task.title}`}</span>)}
+                              {linked.map((task) => <span key={task.id} className="link-chip" title={`${task.lead} · ${t(task.status)}`}>{`${task.taskDate} · ${task.title}`}</span>)}
                             </div>
                           ) : null; })()}
                         </td>
@@ -1945,7 +1945,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                   <article key={item.id} className={`register-tile issue-health-${String(item.health).toLowerCase()}`}>
                     <header className="register-tile-head">
                       <span className="ref">{item.code}</span>
-                      <span className="register-tile-title" title={t(item.name)}>{item.name}</span>
+                      <span className="register-tile-title" title={item.name}>{item.name}</span>
                       {dot(item.health)}
                     </header>
                     <dl className="register-tile-meta">
@@ -1977,7 +1977,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                   <td className="muted">{item.phase}</td>
                   <td className="muted">{item.due}</td>
                   <td><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div></td>
-                  <td className="muted">{(() => { const refs = issuesForProject(item.id); return refs.length ? <button type="button" className="link-chip" title={t(refs.map((issue) => issue.title).join('\n'))} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'; })()}</td>
+                  <td className="muted">{(() => { const refs = issuesForProject(item.id); return refs.length ? <button type="button" className="link-chip" title={refs.map((issue) => issue.title).join('\n')} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'; })()}</td>
                   <td className="ta-r"><div className="action-row"><EditButton onClick={() => { setProjectForm({ code: item.code, name: item.name, owner: item.owner, phase: item.phase, due: item.due, progress: item.progress, health: item.health }); setEditor('project', item.id); }} label={t("Edit project")} /><DeleteButton onClick={() => void deleteRecord('project', item.id)} label={t("Delete project")} /></div></td>
                 </tr>
               ))}
@@ -2076,7 +2076,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                       <div className="mini-bar"><span className={item.health} style={{ width: `${(item.maturity / 5) * 100}%` }} /></div>
                     </div>
                   </td>
-                  <td className="doc-cell">{item.attachmentPath ? <a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer" title={t(item.attachmentName || 'Open')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || 'Open'}</span></a> : <span className="muted">{t("No file")}</span>}</td>
+                  <td className="doc-cell">{item.attachmentPath ? <a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer" title={item.attachmentName || t('Open document')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || t('Open document')}</span></a> : <span className="muted">{t("No file")}</span>}</td>
                   <td className="wrap-cell">{item.notes}</td>
                   <td className="ta-r"><div className="action-row"><EditButton onClick={() => { setProcessForm({ code: item.code, name: item.name, owner: item.owner, cadence: item.cadence, maturity: item.maturity, health: item.health, notes: item.notes }); setProcessFile(null); setEditor('process', item.id); }} label={t("Edit process")} /><DeleteButton onClick={() => void deleteRecord('process', item.id)} label={t("Delete process")} /></div></td>
                 </tr>
@@ -2404,7 +2404,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               </div>
             ))}
           </div>
-          <div className="user-chip" title={t(`${user.username} (${user.role})`)}>
+          <div className="user-chip" title={`${user.username} (${t(user.role)})`}>
             <span className="user-chip-name">{user.displayName || user.username}</span>
             <span className="user-chip-role">{t(user.role)}</span>
             <button type="button" className="user-chip-btn" onClick={onSignOut} title={t("Sign out")} aria-label={t("Sign out")}><LogOut size={14} /></button>

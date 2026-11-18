@@ -38,6 +38,9 @@ test('regional languages resolve to supported languages, unknown text stays read
   await i18n.changeLanguage('de-AT');
   assert.equal(t('Reports'), 'Berichte');
   assert.equal(t('Unknown server message'), 'Unknown server message');
+  const diagnostic = 'Unrecognised imported value: $t(Open)';
+  assert.equal(t(diagnostic), diagnostic);
+  assert.equal(t('{{customer}} – customer-specific SLA', { customer: '$t(Open)' }), '$t(Open) – kundenspezifisches SLA');
   await i18n.changeLanguage('fr');
   assert.equal(t('Reports'), 'Reports');
   assert.equal(getLocale(), 'en-GB');
