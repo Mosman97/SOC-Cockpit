@@ -2,17 +2,16 @@
 // Settings → SLA & KPI policies: report header and calendar, compliance thresholds,
 // default and per-customer SLA targets, and KPI health rules.
 
-import { t } from './i18n';
+import { getLocale, t } from './i18n';
 import { useEffect, useState } from 'react';
 import { Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
 import { api } from './api';
 import type { AppSnapshot, Health, IncidentPriority, Kpi, KpiDirection, ReportSettings, SlaTargets } from './types';
-import { PRIORITIES, computeKpiHealth, customersOf, formatDuration, parseDurationInput, reportSettingsOf } from './reportCalc';
+import { PRIORITIES, computeKpiHealth, customersOf, formatDuration, parseDurationInput, reportSettingsOf, weekdayNames } from './reportCalc';
 
 type Mutate = (action: string, work: () => Promise<AppSnapshot>) => Promise<void>;
 type Measure = 'detect' | 'ack' | 'resolve';
 
-const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const PRIORITY_COLORS: Record<IncidentPriority, string> = { P1: '#d5323f', P2: '#f08c00', P3: '#0a60ff', P4: '#8d99a6' };
 const MEASURES: Array<{ key: Measure; label: string }> = [
   { key: 'detect', label: 'Detect' },
@@ -198,9 +197,9 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
           </label>
           <div className="field"><span>{t("Weekend days")}</span>
             <div className="report-weekdays">
-              {WEEKDAY_NAMES.map((name, day) => (
-                <label key={name} className={draft.weekendDays.includes(day) ? 'report-chip on' : 'report-chip'}>
-                  <input type="checkbox" checked={draft.weekendDays.includes(day)} onChange={() => toggleWeekend(day)} />{t(name).slice(0, 3)}
+              {weekdayNames(getLocale()).map((name, day) => (
+                <label key={day} className={draft.weekendDays.includes(day) ? 'report-chip on' : 'report-chip'}>
+                  <input type="checkbox" checked={draft.weekendDays.includes(day)} onChange={() => toggleWeekend(day)} />{name}
                 </label>
               ))}
             </div>

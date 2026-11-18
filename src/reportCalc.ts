@@ -68,6 +68,12 @@ export function complianceTone(value: number | null, settings: ReportSettings): 
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
+/** Weekday labels indexed like Date#getDay(), starting with Sunday. */
+export function weekdayNames(locale: string, weekday: 'short' | 'long' = 'short'): string[] {
+  const formatter = new Intl.DateTimeFormat(locale, { weekday, timeZone: 'UTC' });
+  return Array.from({ length: 7 }, (_, day) => formatter.format(new Date(Date.UTC(2024, 0, 7 + day))));
+}
+
 export function dateKey(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }

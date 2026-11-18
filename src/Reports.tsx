@@ -33,6 +33,7 @@ import {
   parseDurationInput,
   parseStamp,
   reportSettingsOf,
+  weekdayNames,
 } from './reportCalc';
 import type { IncidentMetrics, Period, SlaReport, SlaState, Stats } from './reportCalc';
 import './reports.css';
@@ -54,7 +55,6 @@ const REPORT_TABS: Array<{ key: ReportKey; label: string; printable: boolean }> 
 ];
 
 const PRIORITY_COLORS: Record<IncidentPriority, string> = { P1: '#d5323f', P2: '#f08c00', P3: '#0a60ff', P4: '#8d99a6' };
-const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const INCIDENT_STATUSES: IncidentStatus[] = ['Open', 'Acknowledged', 'Resolved', 'Closed'];
 
 type Mutate = (action: string, work: () => Promise<AppSnapshot>) => Promise<void>;
@@ -490,6 +490,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
   const report = useMemo(() => buildServiceReport(app, period, now), [app, period.from, period.to]); // eslint-disable-line react-hooks/exhaustive-deps
   const { sla, workforce, standup } = report;
   const gapDays = workforce.gapDates.length;
+  const shortWeekdays = weekdayNames(getLocale());
   return (
     <>
       <Section title={t("Executive summary")}>
@@ -569,7 +570,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
         </Section>
       ) : null}
 
-      <Section title={t("Workforce")} note={t("{{value0}} working days · weekend {{value1}}", { value0: workforce.totals.weekdays, value1: settings.weekendDays.map((day) => t(WEEKDAY_NAMES[day]).slice(0, 3)).join('–') || 'none' })}>
+      <Section title={t("Workforce")} note={t("{{value0}} working days · weekend {{value1}}", { value0: workforce.totals.weekdays, value1: settings.weekendDays.map((day) => shortWeekdays[day]).join('–') || 'none' })}>
         {workforce.analysts.length ? (
           <table className="rpt-table compact">
             <thead><tr><th>{t("Analyst")}</th><th className="num">{t("Worked")}</th><th className="num">{t("Weekend worked")}</th><th className="num">{t("Days off")}</th><th className="num">{t("Leave")}</th><th className="num">{t("Sick / absent")}</th></tr></thead>
@@ -621,9 +622,11 @@ function WorkforceReportBody({ app, period, settings }: { app: AppSnapshot; peri
   if (!report.analysts.length) {
     return <Section title={t("Summary")}><Empty>{t("No roster entries in this period. Plan shifts in the Workforce module first.")}</Empty></Section>;
   }
+  const shortWeekdays = weekdayNames(getLocale());
+  const longWeekdays = weekdayNames(getLocale(), 'long');
   return (
     <>
-      <Section title={t("Summary")} note={t("weekend: {{value0}}", { value0: settings.weekendDays.map((day) => t(WEEKDAY_NAMES[day])).join(' & ') || 'none' })}>
+      <Section title={t("Summary")} note={t("weekend: {{value0}}", { value0: settings.weekendDays.map((day) => longWeekdays[day]).join(' & ') || 'none' })}>
         <Tiles items={[
           { label: 'Calendar days', value: String(days.length), hint: t("{{value0}} working · {{value1}} weekend", { value0: report.totals.weekdays, value1: report.totals.weekendDays }) },
           { label: 'Shifts worked', value: String(report.totals.worked) },
@@ -665,11 +668,14 @@ function WorkforceReportBody({ app, period, settings }: { app: AppSnapshot; peri
               <thead>
                 <tr>
                   <th>{t("Analyst")}</th>
-                  {gridDays.map((day) => (
-                    <th key={day} className={weekend.has((parseStamp(day) ?? new Date()).getDay()) ? 'weekend' : ''}>
-                      <span>{Number(day.slice(8))}</span><small>{t(WEEKDAY_NAMES[(parseStamp(day) ?? new Date()).getDay()]).slice(0, 2)}</small>
-                    </th>
-                  ))}
+                  {gridDays.map((day) => {
+                    const weekday = (parseStamp(day) ?? new Date()).getDay();
+                    return (
+                      <th key={day} className={weekend.has(weekday) ? 'weekend' : ''}>
+                        <span>{Number(day.slice(8))}</span><small>{shortWeekdays[weekday]}</small>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
