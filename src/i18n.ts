@@ -2,13 +2,16 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import en from './locales/en.json' with { type: 'json' };
-import de from './locales/de.json' with { type: 'json' };
 
 export const LANGUAGE_STORAGE_KEY = 'soc-cockpit-language';
 
-void i18n.use(LanguageDetector).use(initReactI18next).init({
-  resources: { en: { translation: en }, de: { translation: de } },
+const loadCatalog = {
+  en: () => import('./locales/en.json', { with: { type: 'json' } }).then(({ default: catalog }) => catalog),
+  de: () => import('./locales/de.json', { with: { type: 'json' } }).then(({ default: catalog }) => catalog),
+};
+
+const detected = i18n.use(LanguageDetector).use(initReactI18next).init({
+  resources: {},
   supportedLngs: ['en', 'de'],
   fallbackLng: 'en',
   load: 'languageOnly',
@@ -22,13 +25,34 @@ void i18n.use(LanguageDetector).use(initReactI18next).init({
   },
 });
 
+export async function setLanguage(requested: string): Promise<void> {
+  const language = /^de(?:-|$)/i.test(requested) ? 'de' : 'en';
+  if (!i18n.hasResourceBundle(language, 'translation')) {
+    i18n.addResourceBundle(language, 'translation', await loadCatalog[language]());
+  }
+  await i18n.changeLanguage(language);
+}
+
 function updateDocumentLanguage() {
   if (typeof document !== 'undefined') {
     document.documentElement.lang = i18n.resolvedLanguage || 'en';
   }
 }
 i18n.on('languageChanged', updateDocumentLanguage);
-updateDocumentLanguage();
+
+export const languageReady = detected.then(async () => {
+  try {
+    await setLanguage(i18n.language);
+  } catch (error) {
+    console.error('Could not load the selected language.', error);
+    try {
+      await setLanguage('en');
+    } catch {
+      // English source strings are available even when the catalog cannot load.
+      await i18n.changeLanguage('en');
+    }
+  }
+});
 
 /** Translate presentation strings only; persisted enum values stay canonical. */
 export function t(text: string | undefined | null, values?: Record<string, unknown>): string {

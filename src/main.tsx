@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import './i18n';
+import { languageReady } from './i18n';
 import ReactDOM from 'react-dom/client';
 import { AuthGate } from './Auth';
 import './styles.css';
@@ -16,8 +16,10 @@ function LocalizedApp() {
   return <AuthGate />;
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <LocalizedApp />
-  </React.StrictMode>,
-);
+void languageReady.then(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <LocalizedApp />
+    </React.StrictMode>,
+  );
+});

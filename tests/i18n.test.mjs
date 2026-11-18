@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import i18n, { t, getLocale } from '../src/i18n.ts';
+import { t, getLocale, languageReady, setLanguage } from '../src/i18n.ts';
 import { formatDate, formatPeriod, formatPercent } from '../src/reportCalc.ts';
 
 const en = JSON.parse(readFileSync(new URL('../src/locales/en.json', import.meta.url)));
@@ -18,8 +18,9 @@ test('DE and EN catalogs have matching keys and interpolation variables', () => 
 });
 
 test('language switches translate login, status and handover without changing canonical values', async () => {
+  await languageReady;
   const status = 'Completed';
-  await i18n.changeLanguage('de');
+  await setLanguage('de');
   assert.equal(t('Sign in'), 'Anmelden');
   assert.equal(t('Shift Handover Report'), 'Schichtübergabebericht');
   assert.equal(t(status), 'Erledigt');
@@ -28,20 +29,20 @@ test('language switches translate login, status and handover without changing ca
   assert.equal(t('customerCount', { count: 1 }), '1 Kunde');
   assert.equal(t('customerCount', { count: 3 }), '3 Kunden');
   assert.equal(getLocale(), 'de-DE');
-  await i18n.changeLanguage('en');
+  await setLanguage('en');
   assert.equal(t('Sign in'), 'Sign in');
   assert.equal(t(status), 'Completed');
   assert.equal(getLocale(), 'en-GB');
 });
 
 test('regional languages resolve to supported languages, unknown text stays readable', async () => {
-  await i18n.changeLanguage('de-AT');
+  await setLanguage('de-AT');
   assert.equal(t('Reports'), 'Berichte');
   assert.equal(t('Unknown server message'), 'Unknown server message');
   const diagnostic = 'Unrecognised imported value: $t(Open)';
   assert.equal(t(diagnostic), diagnostic);
   assert.equal(t('{{customer}} – customer-specific SLA', { customer: '$t(Open)' }), '$t(Open) – kundenspezifisches SLA');
-  await i18n.changeLanguage('fr');
+  await setLanguage('fr');
   assert.equal(t('Reports'), 'Reports');
   assert.equal(getLocale(), 'en-GB');
 });
