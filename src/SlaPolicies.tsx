@@ -174,7 +174,7 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
             <datalist id="sla-customers">{knownCustomers.map((name) => <option key={name} value={name} />)}</datalist>
             <button type="button" className="ghost-btn" onClick={addOverride} disabled={!newCustomer.trim() || Boolean(draft.customerSla[newCustomer.trim()])}><Plus size={14} /> {t("Add business unit SLA")}</button>
           </div>
-          <small className="muted">{t("A new customer SLA starts as a copy of the standard targets. Business unit names must match the incident register exactly.")}</small>
+          <small className="muted">{t("A new business unit SLA starts as a copy of the standard targets. Names must match the Business Unit in the incident register exactly.")}</small>
           {overrideNames.length ? overrideNames.map((name) => (
             <div key={name} className="sla-customer">
               <div className="sla-customer-head">
