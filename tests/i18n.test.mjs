@@ -28,11 +28,11 @@ test('language switches translate login, status and handover without changing ca
   assert.equal(t('Edit {{value0}}', { value0: 'SOC Alpha' }), 'SOC Alpha bearbeiten');
   assert.equal(t('customerCount', { count: 1 }), '1 Kunde');
   assert.equal(t('customerCount', { count: 3 }), '3 Kunden');
-  assert.equal(getLocale(), 'de-DE');
+  assert.equal(getLocale([]), 'de-DE');
   await setLanguage('en');
   assert.equal(t('Sign in'), 'Sign in');
   assert.equal(t(status), 'Completed');
-  assert.equal(getLocale(), 'en-GB');
+  assert.equal(getLocale([]), 'en-GB');
 });
 
 test('regional languages resolve to supported languages, unknown text stays readable', async () => {
@@ -44,7 +44,7 @@ test('regional languages resolve to supported languages, unknown text stays read
   assert.equal(t('{{customer}} – customer-specific SLA', { customer: '$t(Open)' }), '$t(Open) – kundenspezifisches SLA');
   await setLanguage('fr');
   assert.equal(t('Reports'), 'Reports');
-  assert.equal(getLocale(), 'en-GB');
+  assert.equal(getLocale([]), 'en-GB');
 });
 
 test('report dates and numbers use the chosen locale', () => {

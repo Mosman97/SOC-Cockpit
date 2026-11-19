@@ -60,8 +60,15 @@ export function t(text: string | undefined | null, values?: Record<string, unkno
   return String(i18n.t(text, { defaultValue: text, ...values }));
 }
 
-export function getLocale(): string {
-  return i18n.resolvedLanguage === 'de' ? 'de-DE' : 'en-GB';
+export function getLocale(browserLanguages: readonly string[] = globalThis.navigator?.languages ?? []): string {
+  const language = i18n.resolvedLanguage === 'de' ? 'de' : 'en';
+  for (const preference of browserLanguages) {
+    const locale = new Intl.Locale(preference);
+    if (locale.language === language && locale.region) {
+      return `${language}-${locale.region}`;
+    }
+  }
+  return language === 'de' ? 'de-DE' : 'en-GB';
 }
 
 export default i18n;
