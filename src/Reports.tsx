@@ -441,7 +441,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
         </Section>
       ) : null}
 
-      <Section title={t("SLA breaches")} note={report.breaches.length ? `${report.breaches.length} breach${report.breaches.length === 1 ? '' : 'es'}` : undefined}>
+      <Section title={t("SLA breaches")} note={report.breaches.length ? t('breachCount', { count: report.breaches.length }) : undefined}>
         {report.breaches.length ? (
           <table className="rpt-table">
             <thead><tr><th>{t("Ref")}</th><th>{t("Incident")}</th>{customer ? null : <th>{t("Business Unit")}</th>}<th>{t("Priority")}</th><th>{t("Measure")}</th><th className="num">{t("Actual")}</th><th className="num">{t("Target")}</th></tr></thead>
@@ -452,7 +452,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
                   <td>{breach.incident.title}</td>
                   {customer ? null : <td>{breach.incident.customer || '—'}</td>}
                   <td>{breach.incident.priority}</td>
-                  <td>{breach.measure}</td>
+                  <td>{t(breach.measure)}</td>
                   <td className="num tone-risk">{breach.open ? t("{{duration}} (open)", { duration: formatDuration(breach.actual) }) : formatDuration(breach.actual)}</td>
                   <td className="num">{formatDuration(breach.target)}</td>
                 </tr>
@@ -516,7 +516,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
           { label: 'Mean time to acknowledge', value: statCell(sla.total.tta) },
           { label: 'Mean time to resolve', value: statCell(sla.total.ttr) },
           { label: 'Issues opened / closed', value: `${report.issuesOpened.length} / ${report.issuesClosed.length}`, hint: t("{{value0}} open now", { value0: report.issuesOpenNow.length }) },
-          { label: 'Objectives completed', value: `${report.objectivesDone} / ${report.objectives.length}`, hint: report.objectivesAtRisk ? `${report.objectivesAtRisk} at risk` : 'none at risk', tone: report.objectivesAtRisk ? 'watch' : 'healthy' },
+          { label: 'Objectives completed', value: `${report.objectivesDone} / ${report.objectives.length}`, hint: report.objectivesAtRisk ? t("{{count}} at risk", { count: report.objectivesAtRisk }) : t("None at risk"), tone: report.objectivesAtRisk ? 'watch' : 'healthy' },
           { label: 'Task completion', value: formatPercent(standup.rate), hint: t("{{value0}} of {{value1}} tasks", { value0: standup.completed, value1: standup.total }) },
           { label: 'Days with staffing gaps', value: String(gapDays), tone: gapDays ? 'watch' : 'healthy' },
           { label: 'Process maturity', value: report.processMaturity === null ? '—' : `${report.processMaturity} / 5` },
@@ -586,7 +586,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
         </Section>
       ) : null}
 
-      <Section title={t("Workforce")} note={t("{{value0}} working days · weekend {{value1}}", { value0: workforce.totals.weekdays, value1: settings.weekendDays.map((day) => shortWeekdays[day]).join('–') || 'none' })}>
+      <Section title={t("Workforce")} note={t("{{value0}} working days · weekend {{value1}}", { value0: workforce.totals.weekdays, value1: settings.weekendDays.map((day) => shortWeekdays[day]).join('–') || t("No weekend days") })}>
         {workforce.analysts.length ? (
           <table className="rpt-table compact">
             <thead><tr><th>{t("Analyst")}</th><th className="num">{t("Worked")}</th><th className="num">{t("Weekend worked")}</th><th className="num">{t("Days off")}</th><th className="num">{t("Leave")}</th><th className="num">{t("Sick / absent")}</th></tr></thead>
@@ -642,7 +642,7 @@ function WorkforceReportBody({ app, period, settings }: { app: AppSnapshot; peri
   const longWeekdays = weekdayNames(getLocale(), 'long');
   return (
     <>
-      <Section title={t("Summary")} note={t("weekend: {{value0}}", { value0: settings.weekendDays.map((day) => longWeekdays[day]).join(' & ') || 'none' })}>
+      <Section title={t("Summary")} note={t("weekend: {{value0}}", { value0: settings.weekendDays.map((day) => longWeekdays[day]).join(' & ') || t("No weekend days") })}>
         <Tiles items={[
           { label: 'Calendar days', value: String(days.length), hint: t("{{value0}} working · {{value1}} weekend", { value0: report.totals.weekdays, value1: report.totals.weekendDays }) },
           { label: 'Shifts worked', value: String(report.totals.worked) },
@@ -975,14 +975,14 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
   async function deleteIncident(item: IncidentRow) {
     const name = [item.ref, item.title].filter(Boolean).join(' · ') || `#${item.id}`;
     const confirmed = await confirmAction({
-      title: 'Delete incident?',
+      title: t("Delete incident?"),
       message: (
         <>
-          <p>Are you sure you want to delete the incident <strong>{name}</strong>?</p>
-          <p>It will no longer count in SLA reports. This action cannot be undone. The deletion is recorded in the audit log.</p>
+          <p>{t("Delete the incident “{{name}}”?", { name })}</p>
+          <p>{t("It will no longer count in SLA reports. This action cannot be undone. The deletion is recorded in the audit log.")}</p>
         </>
       ),
-      confirmLabel: 'Delete incident',
+      confirmLabel: t('Delete incident'),
     });
     if (confirmed) await mutate(`delete-incident-${item.id}`, () => api.deleteRecord('incident', item.id));
   }
@@ -1042,7 +1042,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
 
       {canEdit && sideCollapsed ? (
         <aside className="workforce-controls-rail">
-          <button type="button" className="controls-rail-btn" onClick={() => setSideCollapsed(false)} title="Expand add incident" aria-label="Expand add incident">
+          <button type="button" className="controls-rail-btn" onClick={() => setSideCollapsed(false)} title={t("Expand add incident")} aria-label={t("Expand add incident")}>
             <ChevronLeft size={16} />
             <span className="controls-rail-label">{editingId ? t("Edit incident") : t("Add incident")}</span>
           </button>
@@ -1065,7 +1065,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
                 <label className="field"><span>{t("Title")}</span><input {...field('title')} required /></label>
                 <div className="form-grid two">
                   <label className="field"><span>{t("Priority")}</span><select {...field('priority')}>{PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}</select></label>
-                  <label className="field"><span>{t("Status")}</span><select {...field('status')}>{INCIDENT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}</select></label>
+                  <label className="field"><span>{t("Status")}</span><select {...field('status')}>{INCIDENT_STATUSES.map((s) => <option key={s} value={s}>{t(s)}</option>)}</select></label>
                 </div>
                 <div className="form-grid two">
                   <label className="field"><span>{t("Category")}</span><input {...field('category')} placeholder={t("Malware, Phishing…")} /></label>
@@ -1143,7 +1143,7 @@ function IncidentHistory({ refreshKey }: { refreshKey: number }) {
                   <strong>{auditActionLabel(entry.action)}</strong>
                   <span className="muted"> · {entry.target}</span>
                 </div>
-                <div className="muted small">{new Date(entry.at).toLocaleString(getLocale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · {entry.username || 'system'}{entry.role ? ` (${entry.role})` : ''}</div>
+                <div className="muted small">{new Date(entry.at).toLocaleString(getLocale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · {entry.username || t("System")}{entry.role ? ` (${t(entry.role)})` : ''}</div>
                 {describeAudit(entry) ? <div className="audit-detail">{describeAudit(entry)}</div> : null}
               </li>
             ))}
