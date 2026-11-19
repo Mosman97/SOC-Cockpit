@@ -1076,7 +1076,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
   const dbConnected = app.settings.dataSource === 'server-db';
   const llmConnected = app.settings.llmConfigured;
   const topClocks = [
-    { label: 'Local', zone: undefined },
+    { label: t('Local'), zone: undefined },
     { label: zoneLabel(app.settings.extraClockZones[0]), zone: app.settings.extraClockZones[0] },
     { label: zoneLabel(app.settings.extraClockZones[1]), zone: app.settings.extraClockZones[1] },
   ];
@@ -1325,7 +1325,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <div className="planner-side-title">{t("Create shift label")}</div>
               <div className="form-stack compact">
                 <div className="form-grid two">
-                  <Field label={t("Code")}><input value={rosterLabelForm.code} onChange={(event) => setRosterLabelForm({ ...rosterLabelForm, code: event.target.value.toUpperCase() })} placeholder={t("D12")} maxLength={8} /></Field>
+                  <Field label={t("Code")}><input value={rosterLabelForm.code} onChange={(event) => setRosterLabelForm({ ...rosterLabelForm, code: event.target.value.toUpperCase() })} placeholder="D12" maxLength={8} /></Field>
                   <Field label={t("Label")}><input value={rosterLabelForm.label} onChange={(event) => setRosterLabelForm({ ...rosterLabelForm, label: event.target.value })} placeholder={t("Day")} /></Field>
                 </div>
                 <Field label={t("Hours or note")}><input value={rosterLabelForm.hours} onChange={(event) => setRosterLabelForm({ ...rosterLabelForm, hours: event.target.value })} placeholder="07:00-19:00" /></Field>
@@ -1652,7 +1652,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
             <Field label={t("Title")}><input value={followUpForm.title} onChange={(event) => setFollowUpForm({ ...followUpForm, title: event.target.value })} required /></Field>
             <Field label={t("Owner")}><input value={followUpForm.owner} onChange={(event) => setFollowUpForm({ ...followUpForm, owner: event.target.value })} required /></Field>
             <div className="form-grid two">
-              <Field label={t("Age")}><input value={followUpForm.age} onChange={(event) => setFollowUpForm({ ...followUpForm, age: event.target.value })} placeholder={t("4h")} required /></Field>
+              <Field label={t("Age")}><input value={followUpForm.age} onChange={(event) => setFollowUpForm({ ...followUpForm, age: event.target.value })} placeholder="4h" required /></Field>
               <Field label={t("Health")}><select value={followUpForm.health} onChange={(event) => setFollowUpForm({ ...followUpForm, health: event.target.value as Health })}>{healthOptions.map((item) => <option key={item} value={item}>{t(item)}</option>)}</select></Field>
             </div>
             <button className="primary-btn" type="submit" disabled={Boolean(busy)}><Plus size={14} /> {editing.followUp ? t("Save follow-up") : t("Add follow-up")}</button>
@@ -1775,7 +1775,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <col className="objective-col-action" />
             </colgroup>
             <thead>
-              <tr><th></th><th>{t("S")}</th><th>{t("Issue title")}</th><th>{t("Lead")}</th><th>{t("Assigned to")}</th><th>{t("Linked to")}</th><th>{t("Due")}</th><th>{t("Prog")}</th><th className="ta-r">{t("Action")}</th></tr>
+              <tr><th></th><th>S</th><th>{t("Issue title")}</th><th>{t("Lead")}</th><th>{t("Assigned to")}</th><th>{t("Linked to")}</th><th>{t("Due")}</th><th>{t("Prog")}</th><th className="ta-r">{t("Action")}</th></tr>
             </thead>
             <tbody>
               {(app.issues ?? []).map((item) => {
@@ -1938,7 +1938,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <col className="objective-col-action" />
             </colgroup>
             <thead>
-              <tr><th></th><th>{t("S")}</th><th>{t("Objective title")}</th><th>{t("Lead")}</th><th>{t("Assigned to")}</th><th>{t("Issues")}</th><th>{t("Document")}</th><th>{t("Due")}</th><th>{t("Prog")}</th><th className="ta-r">{t("Action")}</th></tr>
+              <tr><th></th><th>S</th><th>{t("Objective title")}</th><th>{t("Lead")}</th><th>{t("Assigned to")}</th><th>{t("Issues")}</th><th>{t("Document")}</th><th>{t("Due")}</th><th>{t("Prog")}</th><th className="ta-r">{t("Action")}</th></tr>
             </thead>
             <tbody>
               {app.objectives.map((item) => {
@@ -2193,7 +2193,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                     <td className="muted">{item.role}</td>
                     <td className="ref">{item.channel}</td>
                     <td>{item.isLead ? <span className="status-pill up">{t("Lead")}</span> : <span className="muted">{t("No")}</span>}</td>
-                    <td className="wrap-cell">{item.email ? <a className="doc-link" href={`mailto:${item.email}`}>{item.email}</a> : t("N/A")}</td>
+                    <td className="wrap-cell">{item.email ? <a className="doc-link" href={`mailto:${item.email}`}>{item.email}</a> : 'N/A'}</td>
                     <td className="wrap-cell">
                       <span className="contact-phone-cell">
                         <span>{item.phone || 'N/A'}</span>
@@ -2344,10 +2344,10 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
         <Panel title={t("World clocks")} meta={<span className="muted">{t("shown in the top bar")}</span>}>
           <div className="clock-config">
             <Field label={t("Clock A")}>
-              <select value={clockZones[0]} onChange={(event) => setClockZones([event.target.value, clockZones[1]])}>{timeZoneOptions.map((item) => <option key={item.value} value={item.value}>{t(item.label)}</option>)}</select>
+              <select value={clockZones[0]} onChange={(event) => setClockZones([event.target.value, clockZones[1]])}>{timeZoneOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
             </Field>
             <Field label={t("Clock B")}>
-              <select value={clockZones[1]} onChange={(event) => setClockZones([clockZones[0], event.target.value])}>{timeZoneOptions.map((item) => <option key={item.value} value={item.value}>{t(item.label)}</option>)}</select>
+              <select value={clockZones[1]} onChange={(event) => setClockZones([clockZones[0], event.target.value])}>{timeZoneOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
             </Field>
             <button className="primary-btn" type="button" onClick={() => void saveClockZones()} disabled={busy === 'clock-zones'}><Clock3 size={14} /> {t("Save clocks")}</button>
           </div>
@@ -2462,7 +2462,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
             {topClocks.map((item) => (
               <div className="clock-box" key={item.label}>
                 <span className="clock-time">{formatClock(now, item.zone)}</span>
-                <span className="clock-date">{t(item.label)} · {formatDate(now, item.zone)}</span>
+                <span className="clock-date">{item.label} · {formatDate(now, item.zone)}</span>
               </div>
             ))}
           </div>

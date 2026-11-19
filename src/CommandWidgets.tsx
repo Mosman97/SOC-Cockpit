@@ -227,7 +227,7 @@ export function RiskDecisions({ app }: { app: AppSnapshot }) {
   const healthy = activeIssues.filter((i) => i.health === 'healthy').length;
   const total = Math.max(activeIssues.length, 1);
   const topRisk = activeIssues.filter((i) => i.health === 'risk').slice(0, 3);
-  const seg = (n: number, color: string) => (n > 0 ? <div style={{ width: `${(n / total) * 100}%`, background: color }} title={t(`${n}`)} /> : null);
+  const seg = (n: number, color: string) => (n > 0 ? <div style={{ width: `${(n / total) * 100}%`, background: color }} title={String(n)} /> : null);
   return (
     <div className="risk-wrap">
       <div className="risk-top">

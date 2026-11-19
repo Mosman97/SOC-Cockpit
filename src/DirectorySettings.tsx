@@ -131,10 +131,10 @@ export function DirectorySettingsPanel() {
       >
         <div className="ac-grid ac-grid-host">
           <Field label={t("Server address")} locked={isLocked('host')}>
-            <input value={draft.host} disabled={isLocked('host')} placeholder={t("dc01.corp.local")} onChange={(event) => update('host', event.target.value)} />
+            <input value={draft.host} disabled={isLocked('host')} placeholder="dc01.corp.local" onChange={(event) => update('host', event.target.value)} />
           </Field>
           <Field label={t("Port")} locked={isLocked('port')} hint={t("Blank = default")}>
-            <input type="number" min={0} max={65535} value={draft.port || ''} disabled={isLocked('port')} placeholder={t(draft.security === 'ldaps' ? '636' : '389')} onChange={(event) => update('port', Number(event.target.value) || 0)} />
+            <input type="number" min={0} max={65535} value={draft.port || ''} disabled={isLocked('port')} placeholder={draft.security === 'ldaps' ? '636' : '389'} onChange={(event) => update('port', Number(event.target.value) || 0)} />
           </Field>
         </div>
         <div className="ac-grid ac-grid-2">
@@ -167,7 +167,7 @@ export function DirectorySettingsPanel() {
             <input value={draft.bindDN} disabled={isLocked('bindDN')} placeholder={"CN=svc-soc,OU=Service,DC=corp,DC=local"} autoComplete="off" onChange={(event) => update('bindDN', event.target.value)} />
           </Field>
           <Field label={t("Password")} locked={isLocked('bindPassword')} hint={loaded.hasBindPassword ? 'Leave blank to keep the saved password. It is never shown.' : undefined}>
-            <input type="password" value={newPassword} disabled={isLocked('bindPassword') || clearPassword} placeholder={t(loaded.hasBindPassword ? '••••••••' : '')} autoComplete="new-password" onChange={(event) => setNewPassword(event.target.value)} />
+            <input type="password" value={newPassword} disabled={isLocked('bindPassword') || clearPassword} placeholder={loaded.hasBindPassword ? '••••••••' : ''} autoComplete="new-password" onChange={(event) => setNewPassword(event.target.value)} />
           </Field>
         </div>
         {loaded.hasBindPassword && !isLocked('bindPassword') ? (
@@ -188,7 +188,7 @@ export function DirectorySettingsPanel() {
             </select>
           </Field>
           <Field label={t("Only allow members of group")} hint={t("Optional. Group name or full DN; direct membership only.")}>
-            <input value={draft.requiredGroup} placeholder={t("SOC-Team")} onChange={(event) => update('requiredGroup', event.target.value)} />
+            <input value={draft.requiredGroup} placeholder="SOC-Team" onChange={(event) => update('requiredGroup', event.target.value)} />
           </Field>
         </div>
         {draft.loginAttribute === 'custom' ? (

@@ -331,8 +331,8 @@ function SlaPriorityTable({ report, settings }: { report: SlaReport; settings: R
       <thead>
         <tr>
           <th>{t("Priority")}</th><th className="num">{t("Incidents")}</th><th className="num">{t("Open")}</th>
-          <th className="num">{t("MTTD")}</th><th className="num">{t("MTTA")}</th><th className="num">{t("MTTA median")}</th>
-          <th className="num">{t("MTTR")}</th><th className="num">{t("MTTR median")}</th>
+          <th className="num">MTTD</th><th className="num">MTTA</th><th className="num">{t("MTTA median")}</th>
+          <th className="num">MTTR</th><th className="num">{t("MTTR median")}</th>
           <th className="num">{t("Ack SLA")}</th><th className="num">{t("Resolve SLA")}</th>
         </tr>
       </thead>
@@ -476,7 +476,7 @@ function IncidentLogTable({ incidents, showCustomer }: { incidents: IncidentMetr
   return (
     <table className="rpt-table dense">
       <thead>
-        <tr><th>{t("Ref")}</th><th>{t("Title")}</th>{showCustomer ? <th>{t("Business Unit")}</th> : null}<th>{t("Pri")}</th><th>{t("Detected")}</th><th className="num">{t("TTA")}</th><th>{t("Ack")}</th><th className="num">{t("TTR")}</th><th>{t("Resolve")}</th><th>{t("Status")}</th></tr>
+        <tr><th>{t("Ref")}</th><th>{t("Title")}</th>{showCustomer ? <th>{t("Business Unit")}</th> : null}<th>{t("Pri")}</th><th>{t("Detected")}</th><th className="num">TTA</th><th>{t("Ack")}</th><th className="num">TTR</th><th>{t("Resolve")}</th><th>{t("Status")}</th></tr>
       </thead>
       <tbody>
         {incidents.map((m) => (
@@ -1007,7 +1007,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
           {visible.length ? (
             <div className="report-table-scroll">
               <table className="grid-table">
-                <thead><tr><th>{t("Ref")}</th><th>{t("Title")}</th><th>{t("Business Unit")}</th><th>{t("Pri")}</th><th>{t("Detected")}</th><th>{t("TTA")}</th><th>{t("TTR")}</th><th>{t("Status")}</th>{canEdit ? <th className="ta-r">{t("Action")}</th> : null}</tr></thead>
+                <thead><tr><th>{t("Ref")}</th><th>{t("Title")}</th><th>{t("Business Unit")}</th><th>{t("Pri")}</th><th>{t("Detected")}</th><th>TTA</th><th>TTR</th><th>{t("Status")}</th>{canEdit ? <th className="ta-r">{t("Action")}</th> : null}</tr></thead>
                 <tbody>
                   {visible.slice(0, 300).map((item) => {
                     const m = measureIncident(item, settings, now);
@@ -1092,8 +1092,8 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
             <div className="panel-body form-stack">
               <p className="muted small">
                 <Trans
-                  i18nKey="Upload a sheet with one row per ticket: <fields>ticket number, priority, detected date/time</fields> and the <metrics>MTTD, MTTA and MTTR</metrics> for that ticket (minutes like <minutes>45</minutes>, <duration>1h 30m</duration> or <clock>1:30</clock>)."
-                  components={{ fields: <b />, metrics: <b />, minutes: <code />, duration: <code />, clock: <code /> }}
+                  i18nKey="Upload a sheet with one row per ticket: <fields>ticket number, priority, detected date/time</fields> and the <metrics>MTTD, MTTA and MTTR</metrics> for that ticket (minutes like <minutes/>, <duration/> or <clock/>)."
+                  components={{ fields: <b />, metrics: <b />, minutes: <code>45</code>, duration: <code>1h 30m</code>, clock: <code>1:30</code> }}
                 />{' '}
                 {t("The SLA reports are built from it automatically. Exports with timestamps from Splunk, ServiceNow or Jira work too. Re-importing a ticket updates it instead of duplicating it.")}
               </p>

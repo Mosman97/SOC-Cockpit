@@ -162,7 +162,7 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
         <header className="panel-head"><h2>{t("Standard SLA targets")}</h2><div className="panel-meta"><span className="muted">{t("used for every business unit without its own SLA")}</span></div></header>
         <div className="panel-body form-stack">
           <TargetsTable targets={draft.slaTargets} onChange={(next) => setDraft({ ...draft, slaTargets: next })} />
-          <small className="muted"><Trans i18nKey="Type durations such as <minutes>15m</minutes>, <hours>4h</hours> or <days>1d 2h</days>. Set Detect to <disabled>off</disabled> if detection time is not measured for that priority." components={{ minutes: <code />, hours: <code />, days: <code />, disabled: <code /> }} /></small>
+          <small className="muted"><Trans i18nKey="Type durations such as <minutes/>, <hours/> or <days/>. Set Detect to <disabled/> if detection time is not measured for that priority." components={{ minutes: <code>15m</code>, hours: <code>4h</code>, days: <code>1d 2h</code>, disabled: <code>off</code> }} /></small>
         </div>
       </section>
 
@@ -297,7 +297,7 @@ function KpiRules({ app, busy, mutate }: { app: AppSnapshot; busy: boolean; muta
             </tbody>
           </table>
         ) : <p className="muted">{t("No KPIs yet. Add them in the Service module.")}</p>}
-        <small className="muted"> <Trans i18nKey="Higher is better: green at or above target, amber within the band below it, red beyond. Lower is better works the other way. Actual and target must use the same unit (both %, both durations like <duration>3h 40m</duration>, or both plain numbers)." components={{ duration: <code /> }} /></small>
+        <small className="muted"> <Trans i18nKey="Higher is better: green at or above target, amber within the band below it, red beyond. Lower is better works the other way. Actual and target must use the same unit (both %, both durations like <duration/>, or both plain numbers)." components={{ duration: <code>3h 40m</code> }} /></small>
         <div className="report-inline">
           <button type="button" className="primary-btn" onClick={() => void save()} disabled={busy || !changed.length}><Save size={14} /> {t("Save KPI rules")}</button>
           {updatedCount !== null ? <span className="report-import-ok">{t('updatedKpiRuleCount', { count: updatedCount })}</span> : changed.length ? <span className="muted">{t("{{count}} unsaved", { count: changed.length })}</span> : null}
