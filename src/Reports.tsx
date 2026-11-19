@@ -2,6 +2,7 @@
 // Reports module: monthly service, customer SLA, workforce, stand-up and
 // shift-handover reports, shown on screen and printed to PDF (A4 portrait).
 
+import { Trans } from 'react-i18next';
 import { t, getLocale } from './i18n';
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -364,7 +365,11 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
   if (!report.incidents.length) {
     return (
       <Section title={t("Summary")}>
-        <Empty>{t("No incidents were detected in this period")}{customer ? ` for ${customer}` : ''}{t(". Import your SLA sheet (Excel or CSV) in the Incident register tab: one row per ticket with priority, detected date and MTTD / MTTA / MTTR.")}</Empty>
+        <Empty>{
+          customer
+            ? t('No incidents were detected for {{customer}} in this period. Import your SLA sheet (Excel or CSV) in the Incident register tab: one row per ticket with priority, detected date and MTTD / MTTA / MTTR.', { customer })
+            : t('No incidents were detected in this period. Import your SLA sheet (Excel or CSV) in the Incident register tab: one row per ticket with priority, detected date and MTTD / MTTA / MTTR.')
+        }</Empty>
       </Section>
     );
   }
@@ -373,7 +378,10 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
       <Section title={t("Summary")}>
         <Tiles items={[
           { label: 'Incidents handled', value: String(total.count), hint: t("{{value0}} still open", { value0: total.open }) },
-          { label: 'Overall SLA compliance', value: formatPercent(report.overallCompliance), tone: complianceTone(report.overallCompliance, settings), hint: t("target {{value0}}%{{value1}}", { value0: settings.compliance.target, value1: report.meetsContract === null ? '' : report.meetsContract ? t(' · met') : t(' · not met') }) },
+          { label: 'Overall SLA compliance', value: formatPercent(report.overallCompliance), tone: complianceTone(report.overallCompliance, settings), hint: t(
+            report.meetsContract === null ? 'Target: {{target}}%' : report.meetsContract ? 'Target: {{target}}% · met' : 'Target: {{target}}% · not met',
+            { target: settings.compliance.target },
+          ) },
           { label: 'Mean time to detect', value: statCell(total.ttd), hint: total.ttd.count ? t('{{count}} measured', { count: total.ttd.count }) : t('no occurred times') },
           { label: 'Mean time to acknowledge', value: statCell(total.tta), hint: t("median {{value0}}", { value0: total.tta.count ? formatDuration(total.tta.median) : '—' }) },
           { label: 'Mean time to resolve', value: statCell(total.ttr), hint: t("median {{value0}}", { value0: total.ttr.count ? formatDuration(total.ttr.median) : '—' }) },
@@ -399,8 +407,8 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
             ))}
           </tbody>
         </table>
-        <p className="rpt-footnote"> {t("Contracted compliance target:")} {settings.compliance.target}{t("% (amber from")} {settings.compliance.amber}%).
-          {!customer && report.overrideCustomers.length ? ` Incidents for ${report.overrideCustomers.join(', ')} are measured against their customer-specific SLA.` : ''}
+        <p className="rpt-footnote"> {t("Contracted compliance target: {{target}}% (amber from {{amber}}%).", { target: settings.compliance.target, amber: settings.compliance.amber })}
+          {!customer && report.overrideCustomers.length ? ' ' + t("Incidents for {{customers}} are measured against their customer-specific SLA.", { customers: report.overrideCustomers.join(', ') }) : ''}
         </p>
       </Section>
 
@@ -437,7 +445,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
                   {customer ? null : <td>{breach.incident.customer || '—'}</td>}
                   <td>{breach.incident.priority}</td>
                   <td>{breach.measure}</td>
-                  <td className="num tone-risk">{formatDuration(breach.actual)}{breach.open ? t(" (open)") : ''}</td>
+                  <td className="num tone-risk">{breach.open ? t("{{duration}} (open)", { duration: formatDuration(breach.actual) }) : formatDuration(breach.actual)}</td>
                   <td className="num">{formatDuration(breach.target)}</td>
                 </tr>
               ))}
@@ -496,7 +504,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
       <Section title={t("Executive summary")}>
         <Tiles items={[
           { label: 'Incidents handled', value: String(sla.total.count), hint: t("{{value0}} open at report time", { value0: sla.total.open }) },
-          { label: 'SLA compliance', value: formatPercent(sla.overallCompliance), tone: complianceTone(sla.overallCompliance, settings), hint: t("target {{value0}}%", { value0: settings.compliance.target }) },
+          { label: 'SLA compliance', value: formatPercent(sla.overallCompliance), tone: complianceTone(sla.overallCompliance, settings), hint: t('Target: {{target}}%', { target: settings.compliance.target }) },
           { label: 'Mean time to acknowledge', value: statCell(sla.total.tta) },
           { label: 'Mean time to resolve', value: statCell(sla.total.ttr) },
           { label: 'Issues opened / closed', value: `${report.issuesOpened.length} / ${report.issuesClosed.length}`, hint: t("{{value0}} open now", { value0: report.issuesOpenNow.length }) },
@@ -541,7 +549,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
             </tbody>
           </table>
         ) : <Empty>{t("No open issues.")}</Empty>}
-        {report.issuesUndated ? <p className="rpt-footnote">{report.issuesUndated} {t("issue(s) were created before open/close dates were tracked and are not counted in the opened/closed figures.")}</p> : null}
+        {report.issuesUndated ? <p className="rpt-footnote">{t('undatedIssueNotice', { count: report.issuesUndated })}</p> : null}
       </Section>
 
       <Section title={t("Objectives")}>
@@ -705,7 +713,7 @@ function WorkforceReportBody({ app, period, settings }: { app: AppSnapshot; peri
           data={report.coverage.map((day) => ({ label: String(Number(day.date.slice(8))), marker: day.weekend, segments: [{ value: day.working, color: '#1e8a4c' }, { value: day.gaps, color: '#d5323f' }] }))}
         />
         <Legend items={[{ label: 'On shift', color: '#1e8a4c' }, { label: 'Sick / gap', color: '#d5323f' }, { label: 'Weekend', color: '#e3e8ee' }]} />
-        {report.gapDates.length ? <p className="rpt-footnote">{t("Staffing gaps recorded on:")} {report.gapDates.map((date) => formatDate(date)).join(', ')}.</p> : null}
+        {report.gapDates.length ? <p className="rpt-footnote">{t("Staffing gaps were recorded on {{dates}}.", { dates: report.gapDates.map(formatDate).join(', ') })}</p> : null}
       </Section>
 
       <SignOff roles={['SOC Manager', 'HR / Workforce coordinator']} />
@@ -809,7 +817,7 @@ function HandoverReportBody({ app, date, now }: { app: AppSnapshot; date: string
         <Section title={t("Next day · {{value0}}", { value0: formatDate(report.nextDate) })}>{rosterTable(report.rosterNext)}</Section>
       </div>
       {report.absent.length ? (
-        <p className="rpt-footnote">{t("Absent today:")} {report.absent.map((item) => `${item.analyst} (${item.label})`).join(', ')}.</p>
+        <p className="rpt-footnote">{t("Absent today: {{people}}.", { people: report.absent.map((item) => `${item.analyst} (${item.label})`).join(', ') })}</p>
       ) : null}
 
       <Section title={t("Open incidents to hand over")}>
@@ -956,7 +964,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
   return (
     <div className="report-register">
       <section className="panel report-register-list">
-        <header className="panel-head"><h2>{t("Incident register")}</h2><div className="panel-meta"><span className="muted">{incidents.length} {t("incidents")}</span></div></header>
+        <header className="panel-head"><h2>{t("Incident register")}</h2><div className="panel-meta"><span className="muted">{t('incidentCount', { count: incidents.length })}</span></div></header>
         <div className="panel-body">
           <div className="report-filters">
             <select value={filter.customer} onChange={(event) => setFilter({ ...filter, customer: event.target.value })}>
@@ -999,7 +1007,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
                   })}
                 </tbody>
               </table>
-              {visible.length > 300 ? <p className="muted">{t("Showing the 300 most recent of")} {visible.length}{t(". Use the filters to narrow down.")}</p> : null}
+              {visible.length > 300 ? <p className="muted">{t("Showing the 300 most recent of {{total}} incidents. Use the filters to narrow down.", { total: visible.length })}</p> : null}
             </div>
           ) : <p className="muted report-empty-state">{t("No incidents yet. Import your SLA sheet (Excel or CSV) or add an incident with the form.")}</p>}
         </div>
@@ -1044,7 +1052,13 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
           <section className="panel">
             <header className="panel-head"><h2>{t("Import Excel / CSV")}</h2></header>
             <div className="panel-body form-stack">
-              <p className="muted small"> {t("Upload a sheet with one row per ticket:")} <b>{t("ticket number, priority, detected date/time")}</b> {t("and the")} <b>{t("MTTD, MTTA and MTTR")}</b> {t("for that ticket (minutes like")} <code>45</code>, <code>{t("1h 30m")}</code> {t("or")} <code>1:30</code>{t("). The SLA reports are built from it automatically. Exports with timestamps from Splunk, ServiceNow or Jira work too. Re-importing a ticket updates it instead of duplicating it.")} </p>
+              <p className="muted small">
+                <Trans
+                  i18nKey="Upload a sheet with one row per ticket: <fields>ticket number, priority, detected date/time</fields> and the <metrics>MTTD, MTTA and MTTR</metrics> for that ticket (minutes like <minutes>45</minutes>, <duration>1h 30m</duration> or <clock>1:30</clock>)."
+                  components={{ fields: <b />, metrics: <b />, minutes: <code />, duration: <code />, clock: <code /> }}
+                />{' '}
+                {t("The SLA reports are built from it automatically. Exports with timestamps from Splunk, ServiceNow or Jira work too. Re-importing a ticket updates it instead of duplicating it.")}
+              </p>
               <label className="primary-btn report-file-btn">
                 <Upload size={14} /> {t("Choose Excel or CSV file")} <input type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void importFile(file); }} disabled={busy} />
               </label>

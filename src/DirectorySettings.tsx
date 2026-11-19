@@ -111,7 +111,7 @@ export function DirectorySettingsPanel() {
     <div className="ac-dir">
       <div className="ac-dir-intro">
         <p>{t("Let people sign in with their Active Directory account. Changes apply at the next sign-in; no restart needed.")}</p>
-        <span className="ac-sub">{loaded.updatedAt ? `Last changed ${new Date(loaded.updatedAt).toLocaleString(getLocale())} by ${loaded.updatedBy}` : t("Not configured yet")}</span>
+        <span className="ac-sub">{loaded.updatedAt ? t("Last changed {{date}} by {{user}}", { date: new Date(loaded.updatedAt).toLocaleString(getLocale()), user: loaded.updatedBy }) : t("Not configured yet")}</span>
       </div>
       {error ? <div className="error-banner">{t(error)}</div> : null}
       {notice ? <div className="ac-notice">{t(notice)}</div> : null}
@@ -161,7 +161,7 @@ export function DirectorySettingsPanel() {
         )}
       </Card>
 
-      <Card step={2} title={t("Service account")} description="A read-only account the app uses to look people up." aside={<span className={`ac-status ${loaded.hasBindPassword || newPassword ? 'ok' : 'muted'}`}>{t("Password:")} {passwordState}</span>}>
+      <Card step={2} title={t("Service account")} description="A read-only account the app uses to look people up." aside={<span className={`ac-status ${loaded.hasBindPassword || newPassword ? 'ok' : 'muted'}`}>{t("Password: {{status}}", { status: t(passwordState) })}</span>}>
         <div className="ac-grid ac-grid-2">
           <Field label={t("Account name")} locked={isLocked('bindDN')} hint={t("Full DN or user@domain.")}>
             <input value={draft.bindDN} disabled={isLocked('bindDN')} placeholder={"CN=svc-soc,OU=Service,DC=corp,DC=local"} autoComplete="off" onChange={(event) => update('bindDN', event.target.value)} />
@@ -265,7 +265,9 @@ export function DirectorySettingsPanel() {
                 <dt>{t("Directory entry")}</dt><dd className="ac-dn">{lookupResult.dn}</dd>
                 <dt>{t("Groups")}</dt><dd>{lookupResult.groups?.length ? lookupResult.groups.map((group) => <span key={group} className="ac-chip">{group}</span>) : t("None")}</dd>
                 <dt>{t("Allowed in?")}</dt><dd><span className={`ac-status ${lookupResult.allowed ? 'ok' : 'bad'}`}>{lookupResult.allowed ? t("Yes") : t("No - not in the required group")}</span></dd>
-                <dt>{t("On first sign-in")}</dt><dd>{t(lookupResult.roleOnSignIn)}{lookupResult.needsApproval ? t(", waiting for Admin approval") : t(", active straight away")}</dd>
+                <dt>{t("On first sign-in")}</dt><dd>{lookupResult.needsApproval
+                  ? t("{{role}} (administrator approval pending)", { role: t(lookupResult.roleOnSignIn) })
+                  : t("{{role}} (active immediately)", { role: t(lookupResult.roleOnSignIn) })}</dd>
               </dl>
             ) : <div className="error-banner">{lookupResult.message}</div>
           ) : null}

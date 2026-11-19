@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Cisco Systems, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+import { Trans } from 'react-i18next';
 import { t } from './i18n';
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
@@ -46,7 +47,7 @@ function AddUserModal({ roles, onClose, onCreate }: { roles: UserRole[]; onClose
             <input value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} autoComplete="off" autoFocus required />
           </label>
           <label className="ac-field">
-            <span>{t("Email")} <em>{t("(optional)")}</em></span>
+            <span><Trans i18nKey="Email <optional>(optional)</optional>" components={{ optional: <em /> }} /></span>
             <input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} autoComplete="off" />
           </label>
           <label className="ac-field">
@@ -109,7 +110,7 @@ export function UserManagementTab({ currentUserId }: { currentUserId: number }) 
       <header className="ac-card-head">
         <div>
           <h2>{t("Users")}</h2>
-          <p>{users.length} {t("accounts")}{pending ? ` · ${pending} awaiting approval` : ''}</p>
+          <p>{pending ? t("Accounts: {{total}} · Awaiting approval: {{pending}}", { total: users.length, pending }) : t("Accounts: {{total}}", { total: users.length })}</p>
         </div>
         <button type="button" className="ac-btn primary" onClick={() => setAdding(true)}><Plus size={16} /> {t("Add Local User")}</button>
       </header>

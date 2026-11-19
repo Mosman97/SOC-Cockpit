@@ -2,6 +2,7 @@
 // Settings → SLA & KPI policies: report header and calendar, compliance thresholds,
 // default and per-customer SLA targets, and KPI health rules.
 
+import { Trans } from 'react-i18next';
 import { getLocale, t } from './i18n';
 import { useEffect, useState } from 'react';
 import { Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
@@ -14,9 +15,9 @@ type Measure = 'detect' | 'ack' | 'resolve';
 
 const PRIORITY_COLORS: Record<IncidentPriority, string> = { P1: '#d5323f', P2: '#f08c00', P3: '#0a60ff', P4: '#8d99a6' };
 const MEASURES: Array<{ key: Measure; label: string }> = [
-  { key: 'detect', label: 'Detect' },
-  { key: 'ack', label: 'Acknowledge' },
-  { key: 'resolve', label: 'Resolve' },
+  { key: 'detect', label: 'Detect within' },
+  { key: 'ack', label: 'Acknowledge within' },
+  { key: 'resolve', label: 'Resolve within' },
 ];
 
 function cloneTargets(targets: SlaTargets): SlaTargets {
@@ -67,7 +68,7 @@ function TargetsTable({ targets, base, onChange, disabled }: { targets: SlaTarge
   return (
     <table className="grid-table sla-targets">
       <thead>
-        <tr><th>{t("Priority")}</th>{MEASURES.map((measure) => <th key={measure.key}>{t(measure.label)} {t("within")}</th>)}</tr>
+        <tr><th>{t("Priority")}</th>{MEASURES.map((measure) => <th key={measure.key}>{t(measure.label)}</th>)}</tr>
       </thead>
       <tbody>
         {PRIORITIES.map((priority) => (
@@ -78,7 +79,7 @@ function TargetsTable({ targets, base, onChange, disabled }: { targets: SlaTarge
               return (
                 <td key={measure.key} className={changed ? 'sla-changed' : ''}>
                   <DurationInput minutes={targets[priority][measure.key]} onChange={(value) => set(priority, measure.key, value)} disabled={disabled} allowOff={measure.key === 'detect'} />
-                  {changed ? <small className="muted"> {t("standard")} {formatDuration(base[priority][measure.key]) || 'off'}</small> : null}
+                  {changed ? <small className="muted"> {t("Standard: {{duration}}", { duration: base[priority][measure.key] ? formatDuration(base[priority][measure.key]) : t('Not measured') })}</small> : null}
                 </td>
               );
             })}
@@ -150,9 +151,9 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
             </label>
           </div>
           <div className="sla-bands" aria-label={t("Threshold preview")}>
-            <span className="sla-band risk">{t("Red · below")} {draft.compliance.amber}%</span>
-            <span className="sla-band watch">{t("Amber ·")} {draft.compliance.amber}% – {draft.compliance.target}%</span>
-            <span className="sla-band healthy">{t("Green ·")} {draft.compliance.target}{t("% or more")}</span>
+            <span className="sla-band risk">{t("Red · below {{threshold}}%", { threshold: draft.compliance.amber })}</span>
+            <span className="sla-band watch">{t("Amber · {{amber}}%–{{target}}%", { amber: draft.compliance.amber, target: draft.compliance.target })}</span>
+            <span className="sla-band healthy">{t("Green · {{target}}% or more", { target: draft.compliance.target })}</span>
           </div>
         </div>
       </section>
@@ -161,12 +162,12 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
         <header className="panel-head"><h2>{t("Standard SLA targets")}</h2><div className="panel-meta"><span className="muted">{t("used for every customer without its own SLA")}</span></div></header>
         <div className="panel-body form-stack">
           <TargetsTable targets={draft.slaTargets} onChange={(next) => setDraft({ ...draft, slaTargets: next })} />
-          <small className="muted">{t("Type durations such as")} <code>{t("15m")}</code>, <code>{t("4h")}</code> {t("or")} <code>{t("1d 2h")}</code>{t(". Set Detect to")} <code>{t("off")}</code> {t("if detection time is not measured for that priority.")}</small>
+          <small className="muted"><Trans i18nKey="Type durations such as <minutes>15m</minutes>, <hours>4h</hours> or <days>1d 2h</days>. Set Detect to <disabled>off</disabled> if detection time is not measured for that priority." components={{ minutes: <code />, hours: <code />, days: <code />, disabled: <code /> }} /></small>
         </div>
       </section>
 
       <section className="panel">
-        <header className="panel-head"><h2>{t("Customer-specific SLAs")}</h2><div className="panel-meta"><span className="muted">{t('customerCount', { count: overrideNames.length })} {t("with their own contract")}</span></div></header>
+        <header className="panel-head"><h2>{t("Customer-specific SLAs")}</h2><div className="panel-meta"><span className="muted">{t('customerContracts', { count: overrideNames.length })}</span></div></header>
         <div className="panel-body form-stack">
           <div className="report-inline">
             <input list="sla-customers" placeholder={t("Customer name")} value={newCustomer} onChange={(event) => setNewCustomer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addOverride(); } }} />
@@ -296,10 +297,10 @@ function KpiRules({ app, busy, mutate }: { app: AppSnapshot; busy: boolean; muta
             </tbody>
           </table>
         ) : <p className="muted">{t("No KPIs yet. Add them in the Service module.")}</p>}
-        <small className="muted"> {t("Higher is better: green at or above target, amber within the band below it, red beyond. Lower is better works the other way. Actual and target must use the same unit (both %, both durations like")} <code>{t("3h 40m")}</code>{t(", or both plain numbers).")} </small>
+        <small className="muted"> <Trans i18nKey="Higher is better: green at or above target, amber within the band below it, red beyond. Lower is better works the other way. Actual and target must use the same unit (both %, both durations like <duration>3h 40m</duration>, or both plain numbers)." components={{ duration: <code /> }} /></small>
         <div className="report-inline">
           <button type="button" className="primary-btn" onClick={() => void save()} disabled={busy || !changed.length}><Save size={14} /> {t("Save KPI rules")}</button>
-          {message ? <span className="report-import-ok">{t(message)}</span> : changed.length ? <span className="muted">{changed.length} {t("unsaved")}</span> : null}
+          {message ? <span className="report-import-ok">{t(message)}</span> : changed.length ? <span className="muted">{t("{{count}} unsaved", { count: changed.length })}</span> : null}
         </div>
       </div>
     </section>

@@ -181,7 +181,7 @@ export function ReadinessGauge({ score, gaps, atRisk, openIssues }: { score: num
       <text x={160} y={178} textAnchor="middle" fontSize={13} fill="var(--muted)" letterSpacing="0.5">{t("READINESS")}</text>
       <text x={42} y={192} textAnchor="middle" fontSize={11} fill="var(--muted)">0</text>
       <text x={278} y={192} textAnchor="middle" fontSize={11} fill="var(--muted)">100</text>
-      <text x={160} y={198} textAnchor="middle" fontSize={11} fill="var(--muted)">{gaps} {t("gaps ·")} {atRisk} {t("at risk ·")} {openIssues} {t("open")}</text>
+      <text x={160} y={198} textAnchor="middle" fontSize={11} fill="var(--muted)">{t("Gaps: {{gaps}} · At risk: {{atRisk}} · Open: {{openIssues}}", { gaps, atRisk, openIssues })}</text>
     </svg>
   );
 }
@@ -209,8 +209,8 @@ export function SlaHeatmap({ app }: { app: AppSnapshot }) {
       </div>
       <div className="widget-foot">
         {reds + watches > 0
-          ? <span className="foot-alert">{reds} {t("off target ·")} {watches} {t("watch ·")} {kpis.length} {t("tracked")}</span>
-          : <span className="foot-ok">{t("All")} {kpis.length} {t("KPIs within tolerance")}</span>}
+          ? <span className="foot-alert">{t("{{reds}} off target · {{watches}} to watch · {{total}} tracked", { reds, watches, total: kpis.length })}</span>
+          : <span className="foot-ok">{t("All {{count}} KPIs are within tolerance", { count: kpis.length })}</span>}
       </div>
     </div>
   );
@@ -239,7 +239,7 @@ export function RiskDecisions({ app }: { app: AppSnapshot }) {
         {seg(watch, 'var(--watch)')}
         {seg(healthy, 'var(--healthy)')}
       </div>
-      <div className="risk-legend"><span><i style={{ background: 'var(--risk)' }} />{t("Risk")} {risk}</span><span><i style={{ background: 'var(--watch)' }} />{t("Watch")} {watch}</span><span><i style={{ background: 'var(--healthy)' }} />{t("OK")} {healthy}</span></div>
+      <div className="risk-legend"><span><i style={{ background: 'var(--risk)' }} />{t("Risk: {{count}}", { count: risk })}</span><span><i style={{ background: 'var(--watch)' }} />{t("Watch: {{count}}", { count: watch })}</span><span><i style={{ background: 'var(--healthy)' }} />{t("OK: {{count}}", { count: healthy })}</span></div>
       <ul className="risk-list">
         {topRisk.length ? topRisk.map((i) => <li key={i.id} title={i.title}>{i.title}</li>) : <li className="muted">{t("No risk-flagged issues.")}</li>}
       </ul>
@@ -368,7 +368,7 @@ export function CoverageHeatStrip({ app, planningDate }: { app: AppSnapshot; pla
               fill={cellColor(n)}
               opacity={n === 0 ? 0.85 : 1}
             >
-              <title>{s} {d}: {n} {t("on shift")}</title>
+              <title>{t("{{shift}} {{date}}: {{count}} on shift", { shift: s, date: d, count: n })}</title>
             </rect>
           );
         }),
@@ -422,7 +422,7 @@ export function LeaveWorkload({ app, planningDate }: { app: AppSnapshot; plannin
           );
         })}
       </svg>
-      <div className="widget-foot"><span className="muted">{totalLeave} {t("working-day absence(s) in")} {shortDate(`${month}-01`).split(' ')[1]}</span></div>
+      <div className="widget-foot"><span className="muted">{t('workingDayAbsences', { count: totalLeave, month: new Intl.DateTimeFormat(getLocale(), { month: 'long' }).format(new Date(`${month}-01T12:00:00`)) })}</span></div>
     </div>
   );
 }
@@ -510,7 +510,7 @@ export function StandupDailyTrend({ app }: { app: AppSnapshot }) {
         })}
       </svg>
       <div className="widget-foot task-trend-foot">
-        <span className="muted">{t("Last 30 days:")} {totalRecorded} {t("recorded ·")} {totalCompleted} {t("completed ·")} {completionRate}{t("% completion")}</span>
+        <span className="muted">{t("Last 30 days: {{recorded}} recorded · {{completed}} completed · {{rate}}% completion", { recorded: totalRecorded, completed: totalCompleted, rate: completionRate })}</span>
         <span className="task-trend-legend"><i className="trend-chip completed" />{t("Completed")} <i className="trend-chip remaining" />{t("Recorded, not completed")}</span>
       </div>
     </div>
@@ -540,7 +540,7 @@ export function EisenhowerSnapshot({ app, planningDate }: { app: AppSnapshot; pl
           </div>
         ))}
       </div>
-      <div className="widget-foot"><span className="muted">{completed}/{tasks.length || 0} {t("done today")}</span></div>
+      <div className="widget-foot"><span className="muted">{t("{{completed}} of {{total}} tasks done today", { completed, total: tasks.length })}</span></div>
     </div>
   );
 }
@@ -570,7 +570,7 @@ export function ObjectivesProjects({ app }: { app: AppSnapshot }) {
           </div>
         ))}
       </div>
-      <div className="widget-foot">{atRisk > 0 ? <span className="foot-alert">{atRisk} {t("at risk / watch")}</span> : <span className="foot-ok">{t("All on track")}</span>}</div>
+      <div className="widget-foot">{atRisk > 0 ? <span className="foot-alert">{t("{{count}} at risk or to watch", { count: atRisk })}</span> : <span className="foot-ok">{t("All on track")}</span>}</div>
     </div>
   );
 }

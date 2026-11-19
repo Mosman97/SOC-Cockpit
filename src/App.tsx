@@ -1156,7 +1156,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <button type="button" className="ghost-btn" onClick={() => setPlanningDate(shiftMonth(planningDate, 1))}>{t("Next month")}</button>
             </div>
             <div className="planner-toolbar-group right">
-              <span className="muted">{rosterStaff.length} {t("staff ·")} {filledCells} {t("assigned cells")}</span>
+              <span className="muted">{t("{{staff}} staff · {{assigned}} assigned cells", { staff: rosterStaff.length, assigned: filledCells })}</span>
               <button type="button" className="ghost-btn" onClick={printPlannerExport}>{t("Export PDF")}</button>
               <button type="button" className={plannerEditMode ? 'primary-btn' : 'ghost-btn'} onClick={() => setPlannerEditMode((current) => !current)}>
                 {plannerEditMode ? t("Exit edit mode") : t("Enter edit mode")}
@@ -1192,7 +1192,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                   <Fragment key={group.channel}>
                     <tr className="planner-channel-row">
                       <th className="planner-channel-name">{group.channel}</th>
-                      <td className="planner-channel-fill" colSpan={plannerMonthDates.length}>{group.staff.length} {t("staff")}</td>
+                      <td className="planner-channel-fill" colSpan={plannerMonthDates.length}>{t("{{count}} staff", { count: group.staff.length })}</td>
                     </tr>
                     {group.staff.map((member) => (
                       <tr key={member.name}>
@@ -1301,7 +1301,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                 {workforceGroups.map((group, index) => (
                   <div className="mini-list-row channel-order-row" key={group.channel}>
                     <span>{group.channel}</span>
-                    <small>{group.staff.length} {t("staff")}</small>
+                    <small>{t("{{count}} staff", { count: group.staff.length })}</small>
                     <div className="action-row">
                       <button type="button" className="icon-btn" onClick={() => void moveChannel(group.channel, -1)} disabled={index === 0 || Boolean(busy)} aria-label={t("Move {{value0}} up", { value0: group.channel })}>{t("Up")}</button>
                       <button type="button" className="icon-btn" onClick={() => void moveChannel(group.channel, 1)} disabled={index === workforceGroups.length - 1 || Boolean(busy)} aria-label={t("Move {{value0}} down", { value0: group.channel })}>{t("Down")}</button>
@@ -1390,7 +1390,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
         <Panel title={t("Daily standup overview")} span={8} className="standup-print-panel" meta={<span className="muted">{shortDateLabel(planningDate)}</span>}>
           <header className="standup-print-header">
             <h1>{t("SOC Daily Standup Tasks")}</h1>
-            <p>{shortDateLabel(planningDate)} · {matrixForDate.length} {t("task(s) ·")} {standupGroups.length} {t("lead(s)")}</p>
+            <p>{t("{{date}} · Tasks: {{tasks}} · Leads: {{leads}}", { date: shortDateLabel(planningDate), tasks: matrixForDate.length, leads: standupGroups.length })}</p>
             <div className="standup-print-signoff"><span>{t("Standup lead: ____________________")}</span><span>{t("Completed at: ____________________")}</span></div>
           </header>
           <div className="standup-date-nav pad">
@@ -1420,7 +1420,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
             {standupDates.map((date) => (
               <button key={date} type="button" className={date === planningDate ? 'day-btn active' : 'day-btn'} onClick={() => { setPlanningDate(date); setMatrixForm((current) => ({ ...current, taskDate: date })); }}>
                 <strong>{shortDateLabel(date)}</strong>
-                <span>{app.matrixTasks.filter((item) => item.taskDate === date).length} {t("items")}</span>
+                <span>{t('dayItemCount', { count: app.matrixTasks.filter((item) => item.taskDate === date).length })}</span>
               </button>
             ))}
           </div>
@@ -1430,8 +1430,8 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <section className="standup-group" key={lead}>
                 <header className="standup-group-head">
                   <div>
-                    <strong>{lead} {t("- Daily Stand up - Overview")}</strong>
-                    <span>{tasks.length} {t("task(s) captured for")} {shortDateLabel(planningDate)}</span>
+                    <strong>{t("Daily stand-up overview for {{lead}}", { lead })}</strong>
+                    <span>{t('standupTasksOnDate', { count: tasks.length, date: shortDateLabel(planningDate) })}</span>
                   </div>
                 </header>
                 <table className="grid-table standup-table">
@@ -1455,7 +1455,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                             <span className={`scope quad-${item.quadrant.toLowerCase()}`}>{t(item.quadrant)}</span>
                             {item.objectiveId ? (() => { const obj = objectiveById.get(item.objectiveId); return obj ? <button type="button" className="link-chip" title={obj.title} onClick={() => openLinkedTarget('objective', item.objectiveId)}>{t("OBJ-{{value0}}", { value0: obj.id })}</button> : null; })() : null}
                             <span className={item.assignee ? 'standup-assignee' : 'standup-assignee empty'}>{item.assignee || 'No assignee set'}</span>
-                            {item.dueTime ? <span>{t("Due")} {item.dueTime}</span> : null}
+                            {item.dueTime ? <span>{t("Due at {{time}}", { time: item.dueTime })}</span> : null}
                           </div>
                           {notesDraft?.id === item.id ? (
                             <div className="standup-notes-edit">
@@ -1508,7 +1508,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
     return (
       <>
       <div className={kpiIntakeCollapsed ? 'workforce-layout collapsed' : 'workforce-layout'}>
-        <Panel title={t("KPI and SLA register")} className="workforce-planner" meta={<span className="muted">{app.kpis.length} {t("metrics")}</span>}>
+        <Panel title={t("KPI and SLA register")} className="workforce-planner" meta={<span className="muted">{t('metricCount', { count: app.kpis.length })}</span>}>
           <table className="grid-table">
             <thead>
               <tr><th>{t("Code")}</th><th>{t("Name")}</th><th>{t("Actual")}</th><th>{t("Target")}</th><th>{t("Trend")}</th><th className="ta-r">{t("Action")}</th></tr>
@@ -1567,7 +1567,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
       </div>
       <div className="grid">
 
-        <Panel title={t("Follow-up tracker")} span={8} meta={<span className="muted">{app.followUps.length} {t("open")}</span>}>
+        <Panel title={t("Follow-up tracker")} span={8} meta={<span className="muted">{t("{{count}} open", { count: app.followUps.length })}</span>}>
           <table className="grid-table">
             <thead>
               <tr><th>{t("Ref")}</th><th>{t("Title")}</th><th>{t("Owner")}</th><th>{t("Age")}</th><th className="ta-r">{t("Action")}</th></tr>
@@ -1826,7 +1826,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
             </div>
             <Field label={t("Health")}><select value={objectiveForm.health} onChange={(event) => setObjectiveForm({ ...objectiveForm, health: event.target.value as Health })}>{healthOptions.map((item) => <option key={item} value={item}>{t(item)}</option>)}</select></Field>
             <Field label={t("Objective document")}><input key={`objective-file-${editing.objective ?? 'new'}`} type="file" accept=".pdf,.doc,.docx,.txt,.md,.rtf" onChange={(event) => setObjectiveFile(event.target.files?.[0] ?? null)} /></Field>
-            <div className="field-hint">{t("Attach the objective brief, evidence pack, or related working document. Max file size:")} {DOCUMENT_UPLOAD_MAX_MB} {t("MB. Upload replaces any existing document.")}</div>
+            <div className="field-hint">{t("Attach the objective brief, evidence pack, or related working document. Max file size: {{size}} MB. Uploading a file replaces the existing document.", { size: DOCUMENT_UPLOAD_MAX_MB })}</div>
             <button className="primary-btn" type="submit" disabled={Boolean(busy)}><Plus size={14} /> {editing.objective ? t("Save objective") : t("Add objective")}</button>
             {editing.objective ? <button className="ghost-btn" type="button" onClick={() => { setObjectiveForm(defaultObjectiveForm); setObjectiveFile(null); setEditor('objective', null); }}>{t("Cancel edit")}</button> : null}
           </form>
@@ -1847,8 +1847,8 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                     <dl className="register-tile-meta">
                       <div><dt>{t("Lead")}</dt><dd>{item.owner || '—'}</dd></div>
                       <div><dt>{t("Assigned")}</dt><dd>{item.assignedTo || '—'}</dd></div>
-                      <div><dt>{t("Issues")}</dt><dd>{refs.length ? <button type="button" className="link-chip" onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'}</dd></div>
-                      <div><dt>{t("Standups")}</dt><dd>{(() => { const linked = tasksForObjective(item.id); return linked.length ? <span title={t("{{value0}} min across {{value1}} task(s)", { value0: linked.reduce((sum, task) => sum + task.durationMinutes, 0), value1: linked.length })}>{linked.length} {t("task")}{linked.length > 1 ? t("s") : ''}</span> : '—'; })()}</dd></div>
+                      <div><dt>{t("Issues")}</dt><dd>{refs.length ? <button type="button" className="link-chip" onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{t('issueCount', { count: refs.length })}</button> : '—'}</dd></div>
+                      <div><dt>{t("Standups")}</dt><dd>{(() => { const linked = tasksForObjective(item.id); return linked.length ? <span title={t("{{value0}} min across {{value1}} task(s)", { value0: linked.reduce((sum, task) => sum + task.durationMinutes, 0), value1: linked.length })}>{t('taskCount', { count: linked.length })}</span> : '—'; })()}</dd></div>
                       <div><dt>{t("Due")}</dt><dd>{objectiveDueLabel(item.due)}</dd></div>
                     </dl>
                     <div className="register-tile-progress"><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div><span className="muted">{item.progress}%</span></div>
@@ -1894,7 +1894,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                       <td className="objective-title-cell"><span>{item.title}</span></td>
                       <td className="muted">{item.owner}</td>
                       <td className="muted">{item.assignedTo || '—'}</td>
-                      <td className="muted">{(() => { const refs = issuesForObjective(item.id); return refs.length ? <button type="button" className="link-chip" title={refs.map((issue) => issue.title).join('\n')} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'; })()}</td>
+                      <td className="muted">{(() => { const refs = issuesForObjective(item.id); return refs.length ? <button type="button" className="link-chip" title={refs.map((issue) => issue.title).join('\n')} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{t('issueCount', { count: refs.length })}</button> : '—'; })()}</td>
                       <td className="doc-cell">{item.attachmentPath ? <a className="doc-link" href={item.attachmentPath} target="_blank" rel="noreferrer" title={item.attachmentName || t('Open document')}><Paperclip size={12} /> <span className="doc-link-name">{item.attachmentName || t('Open document')}</span></a> : <span className="muted">{t("No file")}</span>}</td>
                       <td className="muted">{objectiveDueLabel(item.due)}</td>
                       <td><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div></td>
@@ -1914,7 +1914,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                           ) : null; })()}
                           {(() => { const linked = tasksForObjective(item.id); return linked.length ? (
                             <div className="linked-issues">
-                              <span className="linked-issues-label">{t("Linked standups (")}{linked.reduce((sum, task) => sum + task.durationMinutes, 0)} {t("min):")}</span>
+                              <span className="linked-issues-label">{t("Linked stand-ups ({{minutes}} min):", { minutes: linked.reduce((sum, task) => sum + task.durationMinutes, 0) })}</span>
                               {linked.map((task) => <span key={task.id} className="link-chip" title={`${task.lead} · ${t(task.status)}`}>{`${task.taskDate} · ${task.title}`}</span>)}
                             </div>
                           ) : null; })()}
@@ -1936,7 +1936,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
     const issuesForProject = (id: number) => app.issues.filter((issue) => issue.linkedType === 'project' && issue.linkedId === id);
     return (
       <div className={projectIntakeCollapsed ? 'workforce-layout collapsed' : 'workforce-layout'}>
-        <Panel title={t("Project tracker")} className="workforce-planner" meta={<span className="muted">{app.projects.length} {t("active projects")}</span>}>
+        <Panel title={t("Project tracker")} className="workforce-planner" meta={<span className="muted">{t('activeProjectCount', { count: app.projects.length })}</span>}>
           {registerView === 'tiles' ? (
             <div className="register-tiles">
               {app.projects.map((item) => {
@@ -1951,7 +1951,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                     <dl className="register-tile-meta">
                       <div><dt>{t("Owner")}</dt><dd>{item.owner || '—'}</dd></div>
                       <div><dt>{t("Phase")}</dt><dd>{item.phase || '—'}</dd></div>
-                      <div><dt>{t("Issues")}</dt><dd>{refs.length ? <button type="button" className="link-chip" onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'}</dd></div>
+                      <div><dt>{t("Issues")}</dt><dd>{refs.length ? <button type="button" className="link-chip" onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{t('issueCount', { count: refs.length })}</button> : '—'}</dd></div>
                       <div><dt>{t("Due")}</dt><dd>{item.due || '—'}</dd></div>
                     </dl>
                     <div className="register-tile-progress"><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div><span className="muted">{item.progress}%</span></div>
@@ -1977,7 +1977,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                   <td className="muted">{item.phase}</td>
                   <td className="muted">{item.due}</td>
                   <td><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div></td>
-                  <td className="muted">{(() => { const refs = issuesForProject(item.id); return refs.length ? <button type="button" className="link-chip" title={refs.map((issue) => issue.title).join('\n')} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{refs.length} {t("issue")}{refs.length > 1 ? t("s") : ''}</button> : '—'; })()}</td>
+                  <td className="muted">{(() => { const refs = issuesForProject(item.id); return refs.length ? <button type="button" className="link-chip" title={refs.map((issue) => issue.title).join('\n')} onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{t('issueCount', { count: refs.length })}</button> : '—'; })()}</td>
                   <td className="ta-r"><div className="action-row"><EditButton onClick={() => { setProjectForm({ code: item.code, name: item.name, owner: item.owner, phase: item.phase, due: item.due, progress: item.progress, health: item.health }); setEditor('project', item.id); }} label={t("Edit project")} /><DeleteButton onClick={() => void deleteRecord('project', item.id)} label={t("Delete project")} /></div></td>
                 </tr>
               ))}
@@ -2058,7 +2058,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
 
     return (
       <div className={processIntakeCollapsed ? 'workforce-layout collapsed' : 'workforce-layout'}>
-        <Panel title={t("SOC process inventory")} className="workforce-planner" meta={<span className="muted">{processRows.length} {t("tracked processes")}</span>}>
+        <Panel title={t("SOC process inventory")} className="workforce-planner" meta={<span className="muted">{t('trackedProcessCount', { count: processRows.length })}</span>}>
           <table className="grid-table">
             <thead>
               <tr><th>{t("Code")}</th><th>{t("Process")}</th><th>{t("Owner")}</th><th>{t("Cadence")}</th><th>{t("Maturity")}</th><th>{t("Document")}</th><th>{t("Notes")}</th><th className="ta-r">{t("Action")}</th></tr>
@@ -2103,7 +2103,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
             <Field label={t("Cadence")}><input value={processForm.cadence} onChange={(event) => setProcessForm({ ...processForm, cadence: event.target.value })} placeholder={t("Daily, weekly, monthly")} required /></Field>
             <Field label={t("Health")}><select value={processForm.health} onChange={(event) => setProcessForm({ ...processForm, health: event.target.value as Health })}>{healthOptions.map((item) => <option key={item} value={item}>{t(item)}</option>)}</select></Field>
             <Field label={t("Process document")}><input key={`process-file-${editing.process ?? 'new'}`} type="file" accept=".pdf,.doc,.docx,.txt,.md,.rtf" onChange={(event) => setProcessFile(event.target.files?.[0] ?? null)} /></Field>
-            <div className="field-hint">{t("Attach the current SOP, runbook, or work instruction. Max file size:")} {DOCUMENT_UPLOAD_MAX_MB} {t("MB. Upload replaces any existing document.")}</div>
+            <div className="field-hint">{t("Attach the current SOP, runbook, or work instruction. Max file size: {{size}} MB. Uploading a file replaces the existing document.", { size: DOCUMENT_UPLOAD_MAX_MB })}</div>
             <Field label={t("Notes")}><textarea rows={5} value={processForm.notes} onChange={(event) => setProcessForm({ ...processForm, notes: event.target.value })} /></Field>
             <button className="primary-btn" type="submit" disabled={Boolean(busy)}><Plus size={14} /> {editing.process ? t("Save process") : t("Add process")}</button>
             {editing.process ? <button className="ghost-btn" type="button" onClick={() => { setProcessForm(defaultProcessForm); setProcessFile(null); setEditor('process', null); }}>{t("Cancel edit")}</button> : null}
@@ -2117,7 +2117,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
   function renderContacts() {
     return (
       <div className={contactIntakeCollapsed ? 'workforce-layout collapsed' : 'workforce-layout'}>
-        <Panel title={t("Staff, vendor, and key contacts")} className="workforce-planner" meta={<span className="muted">{app.contacts.length} {t("records")}</span>}>
+        <Panel title={t("Staff, vendor, and key contacts")} className="workforce-planner" meta={<span className="muted">{t('contactRecordCount', { count: app.contacts.length })}</span>}>
           <table className="grid-table">
             <thead>
               <tr><th>{t("Scope")}</th><th>{t("Name")}</th><th>{t("Role")}</th><th>{t("Sub Team")}</th><th>{t("Lead")}</th><th>{t("Email")}</th><th>{t("Phone")}</th><th className="ta-r">{t("Action")}</th></tr>
@@ -2175,7 +2175,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
   function renderNotes() {
     return (
       <div className="grid">
-        <Panel title={t("Daily notes")} span={8} meta={<span className="muted">{notesForSelectedDate.length} {t("notes on")} {shortDateLabel(noteForm.noteDate)}</span>}>
+        <Panel title={t("Daily notes")} span={8} meta={<span className="muted">{t('notesOnDate', { count: notesForSelectedDate.length, date: shortDateLabel(noteForm.noteDate) })}</span>}>
           <div className="day-strip pad note-strip">
             <button type="button" className="ghost-btn" onClick={() => setNoteForm((current) => ({ ...current, noteDate: shiftMonth(current.noteDate, -1) }))}>{t("Prev month")}</button>
             <Field label={t("Month")}><input type="month" value={monthInputValue(noteForm.noteDate)} onChange={(event) => {
@@ -2194,13 +2194,13 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <button key={date} type="button" className={date === noteForm.noteDate ? 'day-btn active' : 'day-btn'} onClick={() => setNoteForm((current) => ({ ...current, noteDate: date }))}>
                 <strong>{shortDateLabel(date)}</strong>
                 <span>{dayLabel(date)}</span>
-                <small>{app.notes.filter((item) => item.noteDate === date).length} {t("note")}</small>
+                <small>{t('dayNoteCount', { count: app.notes.filter((item) => item.noteDate === date).length })}</small>
               </button>
             ))}
           </div>
           <div className="summary-grid note-summary-grid">
-            <article className="summary-card"><span>{t("Selected date")}</span><strong>{shortDateLabel(noteForm.noteDate)}</strong><small>{notesForSelectedDate.length} {t("entries")}</small></article>
-            <article className="summary-card"><span>{t("Month")}</span><strong>{monthKeyLabel(noteForm.noteDate)}</strong><small>{noteDatesInMonth.size} {t("active days")}</small></article>
+            <article className="summary-card"><span>{t("Selected date")}</span><strong>{shortDateLabel(noteForm.noteDate)}</strong><small>{t('noteEntryCount', { count: notesForSelectedDate.length })}</small></article>
+            <article className="summary-card"><span>{t("Month")}</span><strong>{monthKeyLabel(noteForm.noteDate)}</strong><small>{t('activeDayCount', { count: noteDatesInMonth.size })}</small></article>
             <article className="summary-card"><span>{t("Pinned")}</span><strong>{pinnedNotesForSelectedDate.length}</strong><small>{t("flagged for follow-up")}</small></article>
           </div>
           <table className="grid-table">
@@ -2245,7 +2245,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
             <AdvisorMarkdown content={latestBrief?.content} emptyText="No update available." />
           </div>
         </Panel>
-        <Panel title={t("Update history")} span={7} meta={<span className="muted">{app.advisorBriefs.length} {t("stored updates")}</span>}>
+        <Panel title={t("Update history")} span={7} meta={<span className="muted">{t('storedUpdateCount', { count: app.advisorBriefs.length })}</span>}>
           <table className="grid-table">
             <thead>
               <tr><th>{t("For")}</th><th>{t("Created")}</th><th>{t("Source")}</th><th>{t("Content")}</th></tr>
@@ -2445,10 +2445,10 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
         <div className="statusbar-group">
           <span className="statusbar-label">{t("Runtime")}</span>
           <span className={dbConnected ? 'status-pill up' : 'status-pill down'}>
-            <Database size={12} aria-hidden="true" /> {t("SQLite")} {dbConnected ? t("Connected") : t("Disconnected")}
+            <Database size={12} aria-hidden="true" /> {dbConnected ? t("SQLite connected") : t("SQLite disconnected")}
           </span>
           <span className={llmConnected ? 'status-pill up' : 'status-pill warn'}>
-            <Sparkles size={12} aria-hidden="true" /> {t("LLM")} {llmConnected ? t("Configured") : t("Unavailable")}
+            <Sparkles size={12} aria-hidden="true" /> {llmConnected ? t("LLM configured") : t("LLM unavailable")}
           </span>
         </div>
         <div className="statusbar-group end">
