@@ -232,7 +232,7 @@ interface KpiRuleDraft {
 function KpiRules({ app, busy, mutate }: { app: AppSnapshot; busy: boolean; mutate: Mutate }) {
   const initial = () => Object.fromEntries(app.kpis.map((kpi) => [kpi.id, { direction: kpi.direction ?? '', tolerance: kpi.tolerance ?? 5 }])) as Record<number, KpiRuleDraft>;
   const [rules, setRules] = useState<Record<number, KpiRuleDraft>>(initial);
-  const [message, setMessage] = useState<string | null>(null);
+  const [updatedCount, setUpdatedCount] = useState<number | null>(null);
   const kpiKey = JSON.stringify(app.kpis);
   useEffect(() => setRules(initial()), [kpiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -253,8 +253,8 @@ function KpiRules({ app, busy, mutate }: { app: AppSnapshot; busy: boolean; muta
       const rule = rules[kpi.id];
       await mutate(`kpi-rule-${kpi.id}`, () => api.updateRecord('kpi', kpi.id, { ...kpi, direction: rule.direction, tolerance: rule.tolerance }));
     }
-    setMessage(`Updated ${changed.length} KPI rule${changed.length === 1 ? '' : 's'}.`);
-    window.setTimeout(() => setMessage(null), 3000);
+    setUpdatedCount(changed.length);
+    window.setTimeout(() => setUpdatedCount(null), 3000);
   }
 
   return (
@@ -300,7 +300,7 @@ function KpiRules({ app, busy, mutate }: { app: AppSnapshot; busy: boolean; muta
         <small className="muted"> <Trans i18nKey="Higher is better: green at or above target, amber within the band below it, red beyond. Lower is better works the other way. Actual and target must use the same unit (both %, both durations like <duration>3h 40m</duration>, or both plain numbers)." components={{ duration: <code /> }} /></small>
         <div className="report-inline">
           <button type="button" className="primary-btn" onClick={() => void save()} disabled={busy || !changed.length}><Save size={14} /> {t("Save KPI rules")}</button>
-          {message ? <span className="report-import-ok">{t(message)}</span> : changed.length ? <span className="muted">{t("{{count}} unsaved", { count: changed.length })}</span> : null}
+          {updatedCount !== null ? <span className="report-import-ok">{t('updatedKpiRuleCount', { count: updatedCount })}</span> : changed.length ? <span className="muted">{t("{{count}} unsaved", { count: changed.length })}</span> : null}
         </div>
       </div>
     </section>

@@ -110,7 +110,7 @@ export function UserManagementTab({ currentUserId }: { currentUserId: number }) 
       <header className="ac-card-head">
         <div>
           <h2>{t("Users")}</h2>
-          <p>{pending ? t("Accounts: {{total}} · Awaiting approval: {{pending}}", { total: users.length, pending }) : t("Accounts: {{total}}", { total: users.length })}</p>
+          <p>{pending ? t('accountCountWithApproval', { count: users.length, pending }) : t('accountCount', { count: users.length })}</p>
         </div>
         <button type="button" className="ac-btn primary" onClick={() => setAdding(true)}><Plus size={16} /> {t("Add Local User")}</button>
       </header>

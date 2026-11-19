@@ -517,7 +517,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
           { label: 'Mean time to resolve', value: statCell(sla.total.ttr) },
           { label: 'Issues opened / closed', value: `${report.issuesOpened.length} / ${report.issuesClosed.length}`, hint: t("{{value0}} open now", { value0: report.issuesOpenNow.length }) },
           { label: 'Objectives completed', value: `${report.objectivesDone} / ${report.objectives.length}`, hint: report.objectivesAtRisk ? t("{{count}} at risk", { count: report.objectivesAtRisk }) : t("None at risk"), tone: report.objectivesAtRisk ? 'watch' : 'healthy' },
-          { label: 'Task completion', value: formatPercent(standup.rate), hint: t("{{value0}} of {{value1}} tasks", { value0: standup.completed, value1: standup.total }) },
+          { label: 'Task completion', value: formatPercent(standup.rate), hint: t('standupReportTaskCompletion', { completed: standup.completed, count: standup.total }) },
           { label: 'Days with staffing gaps', value: String(gapDays), tone: gapDays ? 'watch' : 'healthy' },
           { label: 'Process maturity', value: report.processMaturity === null ? '—' : `${report.processMaturity} / 5` },
         ]} />
@@ -586,7 +586,7 @@ function ServiceReportBody({ app, period, now, settings }: { app: AppSnapshot; p
         </Section>
       ) : null}
 
-      <Section title={t("Workforce")} note={t("{{value0}} working days · weekend {{value1}}", { value0: workforce.totals.weekdays, value1: settings.weekendDays.map((day) => shortWeekdays[day]).join('–') || t("No weekend days") })}>
+      <Section title={t("Workforce")} note={t('workdaysWithWeekend', { count: workforce.totals.weekdays, weekend: settings.weekendDays.map((day) => shortWeekdays[day]).join('–') || t("No weekend days") })}>
         {workforce.analysts.length ? (
           <table className="rpt-table compact">
             <thead><tr><th>{t("Analyst")}</th><th className="num">{t("Worked")}</th><th className="num">{t("Weekend worked")}</th><th className="num">{t("Days off")}</th><th className="num">{t("Leave")}</th><th className="num">{t("Sick / absent")}</th></tr></thead>
@@ -742,7 +742,7 @@ function StandupReportBody({ app, period }: { app: AppSnapshot; period: Period }
     <>
       <Section title={t("Summary")}>
         <Tiles items={[
-          { label: 'Tasks', value: String(report.total), hint: t("over {{value0}} stand-up day(s)", { value0: report.activeDays }) },
+          { label: 'Tasks', value: String(report.total), hint: t('standupDayCount', { count: report.activeDays }) },
           { label: 'Completion rate', value: formatPercent(report.rate), tone: taskTone(report.rate) },
           { label: 'Planned effort', value: formatDuration(report.minutes), hint: t("{{value0}} completed", { value0: formatDuration(report.completedMinutes) }) },
           { label: 'Linked to objectives', value: `${report.linkedToObjectives} / ${report.total}` },
@@ -911,7 +911,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [sideCollapsed, setSideCollapsed] = useState(startCollapsed);
   const [filter, setFilter] = useState({ customer: '', status: '', search: '' });
-  const [importResult, setImportResult] = useState<string | null>(null);
+  const [importResult, setImportResult] = useState<{ added: number; updated: number; skipped: number } | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [confirmAction, confirmDialog] = useConfirm();
   const incidents = app.incidents ?? [];
@@ -953,7 +953,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
     setImportErrors([]);
     await mutate('import-incidents', async () => {
       const result = await api.importIncidents(file);
-      setImportResult(`Imported ${result.added} new and updated ${result.updated} existing incident(s)${result.skipped ? `; ${result.skipped} row(s) skipped` : ''}.`);
+      setImportResult({ added: result.added, updated: result.updated, skipped: result.skipped });
       setImportErrors([...result.errors, ...(result.warnings ?? []).map((warning) => `Note – ${warning}`)]);
       return result.snapshot;
     });
@@ -1102,7 +1102,13 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed 
               </label>
               <button type="button" className="ghost-btn" onClick={() => void downloadTemplate('xlsx')}><Download size={14} /> {t("Download Excel template")}</button>
               <button type="button" className="link-btn" onClick={() => void downloadTemplate('csv')}>{t("or CSV template")}</button>
-              {importResult ? <p className="report-import-ok">{importResult}</p> : null}
+              {importResult ? (
+                <p className="report-import-ok">
+                  {t('importedIncidentCount', { count: importResult.added })}{' '}
+                  {t('updatedIncidentCount', { count: importResult.updated })}
+                  {importResult.skipped > 0 ? ' ' + t('skippedIncidentRowCount', { count: importResult.skipped }) : null}
+                </p>
+              ) : null}
               {importErrors.length ? <ul className="report-import-errors">{importErrors.map((error) => <li key={error}>{t(error)}</li>)}</ul> : null}
             </div>
           </section>

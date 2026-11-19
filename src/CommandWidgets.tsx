@@ -210,7 +210,7 @@ export function SlaHeatmap({ app }: { app: AppSnapshot }) {
       <div className="widget-foot">
         {reds + watches > 0
           ? <span className="foot-alert">{t("{{reds}} off target · {{watches}} to watch · {{total}} tracked", { reds, watches, total: kpis.length })}</span>
-          : <span className="foot-ok">{t("All {{count}} KPIs are within tolerance", { count: kpis.length })}</span>}
+          : <span className="foot-ok">{t('kpisWithinTolerance', { count: kpis.length })}</span>}
       </div>
     </div>
   );
@@ -540,7 +540,7 @@ export function EisenhowerSnapshot({ app, planningDate }: { app: AppSnapshot; pl
           </div>
         ))}
       </div>
-      <div className="widget-foot"><span className="muted">{t("{{completed}} of {{total}} tasks done today", { completed, total: tasks.length })}</span></div>
+      <div className="widget-foot"><span className="muted">{t('tasksDoneToday', { completed, count: tasks.length })}</span></div>
     </div>
   );
 }

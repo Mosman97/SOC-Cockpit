@@ -839,7 +839,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
 
     const pending = snapshot?.matrixTasks.filter((item) => item.taskDate === sourceDate && item.status !== 'Completed') ?? [];
     const confirmed = window.confirm(
-      t('Carry over {{count}} incomplete tasks from {{from}} into {{to}}?', { count: pending.length, from: shortDateLabel(sourceDate), to: shortDateLabel(target) }) + '\n\n'
+      t('carryOverTasksPrompt', { count: pending.length, from: shortDateLabel(sourceDate), to: shortDateLabel(target) }) + '\n\n'
       + t('The incomplete tasks will be copied into the selected day as "Not Completed". The original tasks stay unchanged, and duplicates already on the target day are skipped.'),
     );
     if (!confirmed) {
@@ -1213,7 +1213,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
               <button type="button" className="ghost-btn" onClick={() => setPlanningDate(shiftMonth(planningDate, 1))}>{t("Next month")}</button>
             </div>
             <div className="planner-toolbar-group right">
-              <span className="muted">{t("{{staff}} staff · {{assigned}} assigned cells", { staff: rosterStaff.length, assigned: filledCells })}</span>
+              <span className="muted">{t('{{staff}} staff · {{assignments}}', { staff: rosterStaff.length, assignments: t('assignedCellCount', { count: filledCells }) })}</span>
               <button type="button" className="ghost-btn" onClick={printPlannerExport}>{t("Export PDF")}</button>
               <button type="button" className={plannerEditMode ? 'primary-btn' : 'ghost-btn'} onClick={() => setPlannerEditMode((current) => !current)}>
                 {plannerEditMode ? t("Exit edit mode") : t("Enter edit mode")}
@@ -1447,7 +1447,11 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
         <Panel title={t("Daily standup overview")} span={8} className="standup-print-panel" meta={<span className="muted">{shortDateLabel(planningDate)}</span>}>
           <header className="standup-print-header">
             <h1>{t("SOC Daily Standup Tasks")}</h1>
-            <p>{t("{{date}} · Tasks: {{tasks}} · Leads: {{leads}}", { date: shortDateLabel(planningDate), tasks: matrixForDate.length, leads: standupGroups.length })}</p>
+            <p>{t('{{date}} · {{tasks}} · {{leads}}', {
+              date: shortDateLabel(planningDate),
+              tasks: t('taskCount', { count: matrixForDate.length }),
+              leads: t('standupLeadCount', { count: standupGroups.length }),
+            })}</p>
             <div className="standup-print-signoff"><span>{t("Standup lead: ____________________")}</span><span>{t("Completed at: ____________________")}</span></div>
           </header>
           <div className="standup-date-nav pad">
@@ -1905,7 +1909,7 @@ export function App({ user, onSignOut }: { user: AuthUser; onSignOut: () => void
                       <div><dt>{t("Lead")}</dt><dd>{item.owner || '—'}</dd></div>
                       <div><dt>{t("Assigned")}</dt><dd>{item.assignedTo || '—'}</dd></div>
                       <div><dt>{t("Issues")}</dt><dd>{refs.length ? <button type="button" className="link-chip" onClick={() => openReferencingIssues(refs.map((issue) => issue.id))}>{t('issueCount', { count: refs.length })}</button> : '—'}</dd></div>
-                      <div><dt>{t("Standups")}</dt><dd>{(() => { const linked = tasksForObjective(item.id); return linked.length ? <span title={t("{{value0}} min across {{value1}} task(s)", { value0: linked.reduce((sum, task) => sum + task.durationMinutes, 0), value1: linked.length })}>{t('taskCount', { count: linked.length })}</span> : '—'; })()}</dd></div>
+                      <div><dt>{t("Standups")}</dt><dd>{(() => { const linked = tasksForObjective(item.id); return linked.length ? <span title={t('linkedTaskDuration', { minutes: linked.reduce((sum, task) => sum + task.durationMinutes, 0), count: linked.length })}>{t('taskCount', { count: linked.length })}</span> : '—'; })()}</dd></div>
                       <div><dt>{t("Due")}</dt><dd>{objectiveDueLabel(item.due)}</dd></div>
                     </dl>
                     <div className="register-tile-progress"><div className="mini-bar"><span className={item.health} style={{ width: `${item.progress}%` }} /></div><span className="muted">{item.progress}%</span></div>

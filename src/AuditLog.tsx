@@ -112,7 +112,7 @@ export function AuditLogTab() {
         </table>
       </div>
       <p className="ac-foot-note">
-        {t("Showing {{shown}} of the latest {{total}} entries.", { shown: shown.length, total: all.length })}
+        {t('auditEntriesShown', { shown: shown.length, count: all.length })}
         {canLoadMore ? <> <button type="button" className="ac-btn" onClick={() => setLimit((current) => Math.min(MAX_ENTRIES, current + PAGE_SIZE))} disabled={loading}>{t("Load older entries")}</button></> : null}
       </p>
     </section>
