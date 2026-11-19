@@ -9,8 +9,10 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Download, FileText, Pencil, Plus, Printer, Save, Trash2, Upload } from 'lucide-react';
+import { ArrowLeftRight, ChevronLeft, ChevronRight, ClipboardList, Download, FileText, Gauge, Pencil, Plus, Printer, Save, Siren, Trash2, Upload, Users } from 'lucide-react';
 import { api } from './api';
+import { auditActionLabel, describeAudit } from './auditFormat';
+import { useConfirm } from './ConfirmDialog';
 import type { AppSnapshot, AuthUser, Health, IncidentAuditEntry, IncidentPriority, IncidentRow, IncidentStatus, ReportSettings } from './types';
 import {
   PRIORITIES,
@@ -46,21 +48,24 @@ const formatPeriod = (period: Period) => formatReportPeriod(period, getLocale())
 
 type ReportKey = 'service' | 'sla' | 'workforce' | 'standup' | 'handover' | 'incidents';
 
-const REPORT_TABS: Array<{ key: ReportKey; label: string; printable: boolean }> = [
-  { key: 'service', label: 'Monthly service report', printable: true },
-  { key: 'sla', label: 'Customer SLA report', printable: true },
-  { key: 'workforce', label: 'Workforce & attendance', printable: true },
-  { key: 'standup', label: 'Stand-up & tasks', printable: true },
-  { key: 'handover', label: 'Shift handover', printable: true },
-  { key: 'incidents', label: 'Incident register', printable: false },
+const REPORT_TABS: Array<{ key: ReportKey; label: string; printable: boolean; icon: typeof FileText }> = [
+  { key: 'service', label: 'Monthly service report', printable: true, icon: FileText },
+  { key: 'sla', label: 'SLA Report', printable: true, icon: Gauge },
+  { key: 'workforce', label: 'Workforce & attendance', printable: true, icon: Users },
+  { key: 'standup', label: 'Stand-up & tasks', printable: true, icon: ClipboardList },
+  { key: 'handover', label: 'Shift handover', printable: true, icon: ArrowLeftRight },
+  { key: 'incidents', label: 'Incident register', printable: false, icon: Siren },
 ];
+
+// Incident status shown with the same health dot as the other registers.
+const STATUS_HEALTH: Record<IncidentStatus, Health> = { Open: 'risk', Acknowledged: 'watch', Resolved: 'healthy', Closed: 'healthy' };
 
 const PRIORITY_COLORS: Record<IncidentPriority, string> = { P1: '#d5323f', P2: '#f08c00', P3: '#0a60ff', P4: '#8d99a6' };
 const INCIDENT_STATUSES: IncidentStatus[] = ['Open', 'Acknowledged', 'Resolved', 'Closed'];
 
 type Mutate = (action: string, work: () => Promise<AppSnapshot>) => Promise<void>;
 
-export function ReportsView({ app, user, busy, mutate }: { app: AppSnapshot; user: AuthUser; busy: boolean; mutate: Mutate }) {
+export function ReportsView({ app, user, busy, mutate, panelsCollapsedByDefault = false }: { app: AppSnapshot; user: AuthUser; busy: boolean; mutate: Mutate; panelsCollapsedByDefault?: boolean }) {
   const [tab, setTab] = useState<ReportKey>('service');
   const [month, setMonth] = useState(() => dateKey(new Date()).slice(0, 7));
   const [rangeMode, setRangeMode] = useState<'month' | 'custom'>('month');
@@ -101,12 +106,15 @@ export function ReportsView({ app, user, busy, mutate }: { app: AppSnapshot; use
 
   return (
     <div className="reports-module">
-      <div className="report-tabs" role="tablist" aria-label={t("Reports")}>
-        {REPORT_TABS.map((item) => (
-          <button key={item.key} type="button" role="tab" aria-selected={tab === item.key} className={tab === item.key ? 'report-tab active' : 'report-tab'} onClick={() => setTab(item.key)}>
-            {t(item.label)}
-          </button>
-        ))}
+      <div className="ac-tabs report-tabs" role="tablist" aria-label={t("Reports")}>
+        {REPORT_TABS.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button key={item.key} type="button" role="tab" aria-selected={tab === item.key} className={tab === item.key ? 'ac-tab active' : 'ac-tab'} onClick={() => setTab(item.key)}>
+              <Icon size={16} aria-hidden="true" /> {t(item.label)}
+            </button>
+          );
+        })}
       </div>
 
       {active.printable ? (
@@ -133,8 +141,8 @@ export function ReportsView({ app, user, busy, mutate }: { app: AppSnapshot; use
             </>
           )}
           {tab === 'sla' ? (
-            <label className="report-field">{t("Customer")} <select value={customer} onChange={(event) => setCustomer(event.target.value)}>
-                <option value="">{t("All customers")}</option>
+            <label className="report-field">{t("Business Unit")} <select value={customer} onChange={(event) => setCustomer(event.target.value)}>
+                <option value="">{t("All business units")}</option>
                 {customersOf(app).map((name) => <option key={name} value={name}>{name}</option>)}
               </select>
             </label>
@@ -146,7 +154,7 @@ export function ReportsView({ app, user, busy, mutate }: { app: AppSnapshot; use
       ) : null}
 
       {documentNode ? <div className="report-paper-shell">{documentNode}</div> : null}
-      {tab === 'incidents' ? <IncidentRegister app={app} canEdit={canEdit} isAdmin={user.role === 'Admin'} busy={busy} mutate={mutate} /> : null}
+      {tab === 'incidents' ? <IncidentRegister app={app} canEdit={canEdit} isAdmin={user.role === 'Admin'} busy={busy} mutate={mutate} startCollapsed={panelsCollapsedByDefault} /> : null}
 
       {printing && documentNode ? createPortal(<div className="report-print-portal">{documentNode}</div>, document.body) : null}
     </div>
@@ -169,7 +177,7 @@ function ReportDocument(props: { report: ReportKey; app: AppSnapshot; period: Pe
   };
   const subtitle = report === 'handover'
     ? formatDate(handoverDate)
-    : `${formatPeriod(period)}${report === 'sla' ? ` · ${customer || t('All customers')}` : ''}`;
+    : `${formatPeriod(period)}${report === 'sla' ? ` · ${customer || t('All business units')}` : ''}`;
 
   let body: ReactNode = null;
   if (report === 'service') body = <ServiceReportBody app={app} period={period} now={now} settings={settings} />;
@@ -393,7 +401,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
         <SlaPriorityTable report={report} settings={settings} />
       </Section>
 
-      <Section title={t("Agreed SLA targets")} note={report.customTargets ? t('{{customer}} – customer-specific SLA', { customer }) : t('standard SLA')}>
+      <Section title={t("Agreed SLA targets")} note={report.customTargets ? t('{{customer}} – business unit SLA', { customer }) : t('standard SLA')}>
         <table className="rpt-table compact">
           <thead><tr><th>{t("Priority")}</th><th className="num">{t("Detect within")}</th><th className="num">{t("Acknowledge within")}</th><th className="num">{t("Resolve within")}</th></tr></thead>
           <tbody>
@@ -408,7 +416,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
           </tbody>
         </table>
         <p className="rpt-footnote"> {t("Contracted compliance target: {{target}}% (amber from {{amber}}%).", { target: settings.compliance.target, amber: settings.compliance.amber })}
-          {!customer && report.overrideCustomers.length ? ' ' + t("Incidents for {{customers}} are measured against their customer-specific SLA.", { customers: report.overrideCustomers.join(', ') }) : ''}
+          {!customer && report.overrideCustomers.length ? ' ' + t("Incidents for {{customers}} are measured against their own business unit SLA.", { customers: report.overrideCustomers.join(', ') }) : ''}
         </p>
       </Section>
 
@@ -436,7 +444,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
       <Section title={t("SLA breaches")} note={report.breaches.length ? `${report.breaches.length} breach${report.breaches.length === 1 ? '' : 'es'}` : undefined}>
         {report.breaches.length ? (
           <table className="rpt-table">
-            <thead><tr><th>{t("Ref")}</th><th>{t("Incident")}</th>{customer ? null : <th>{t("Customer")}</th>}<th>{t("Priority")}</th><th>{t("Measure")}</th><th className="num">{t("Actual")}</th><th className="num">{t("Target")}</th></tr></thead>
+            <thead><tr><th>{t("Ref")}</th><th>{t("Incident")}</th>{customer ? null : <th>{t("Business Unit")}</th>}<th>{t("Priority")}</th><th>{t("Measure")}</th><th className="num">{t("Actual")}</th><th className="num">{t("Target")}</th></tr></thead>
             <tbody>
               {report.breaches.map((breach, index) => (
                 <tr key={`${breach.incident.id}-${breach.measure}-${index}`}>
@@ -459,7 +467,7 @@ function SlaReportBody({ report, settings, customer }: { report: SlaReport; sett
       </Section>
 
       <p className="rpt-footnote"> {t("MTTD is measured from when the activity occurred to when it was detected (only for incidents with an occurred time). MTTA is measured from detection to acknowledgement and MTTR from detection to resolution. Averages exclude incidents without the relevant timestamp. An open incident that has already exceeded its target is counted as a breach.")} </p>
-      <SignOff roles={['SOC Service Delivery Manager', 'Customer representative']} />
+      <SignOff roles={['SOC Service Delivery Manager', 'Business unit representative']} />
     </>
   );
 }
@@ -468,7 +476,7 @@ function IncidentLogTable({ incidents, showCustomer }: { incidents: IncidentMetr
   return (
     <table className="rpt-table dense">
       <thead>
-        <tr><th>{t("Ref")}</th><th>{t("Title")}</th>{showCustomer ? <th>{t("Customer")}</th> : null}<th>{t("Pri")}</th><th>{t("Detected")}</th><th className="num">{t("TTA")}</th><th>{t("Ack")}</th><th className="num">{t("TTR")}</th><th>{t("Resolve")}</th><th>{t("Status")}</th></tr>
+        <tr><th>{t("Ref")}</th><th>{t("Title")}</th>{showCustomer ? <th>{t("Business Unit")}</th> : null}<th>{t("Pri")}</th><th>{t("Detected")}</th><th className="num">{t("TTA")}</th><th>{t("Ack")}</th><th className="num">{t("TTR")}</th><th>{t("Resolve")}</th><th>{t("Status")}</th></tr>
       </thead>
       <tbody>
         {incidents.map((m) => (
@@ -823,7 +831,7 @@ function HandoverReportBody({ app, date, now }: { app: AppSnapshot; date: string
       <Section title={t("Open incidents to hand over")}>
         {report.openIncidents.length ? (
           <table className="rpt-table dense">
-            <thead><tr><th>{t("Ref")}</th><th>{t("Incident")}</th><th>{t("Customer")}</th><th>{t("Pri")}</th><th>{t("Detected")}</th><th>{t("Analyst")}</th><th>{t("Ack")}</th><th>{t("Resolve SLA")}</th></tr></thead>
+            <thead><tr><th>{t("Ref")}</th><th>{t("Incident")}</th><th>{t("Business Unit")}</th><th>{t("Pri")}</th><th>{t("Detected")}</th><th>{t("Analyst")}</th><th>{t("Ack")}</th><th>{t("Resolve SLA")}</th></tr></thead>
             <tbody>
               {report.openIncidents.map((m) => (
                 <tr key={m.incident.id}>
@@ -898,12 +906,14 @@ const emptyIncident = (): IncidentForm => ({
   acknowledgedAt: '', resolvedAt: '', notes: '',
 });
 
-function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSnapshot; canEdit: boolean; isAdmin: boolean; busy: boolean; mutate: Mutate }) {
+function IncidentRegister({ app, canEdit, isAdmin, busy, mutate, startCollapsed }: { app: AppSnapshot; canEdit: boolean; isAdmin: boolean; busy: boolean; mutate: Mutate; startCollapsed: boolean }) {
   const [form, setForm] = useState<IncidentForm>(emptyIncident);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [sideCollapsed, setSideCollapsed] = useState(startCollapsed);
   const [filter, setFilter] = useState({ customer: '', status: '', search: '' });
   const [importResult, setImportResult] = useState<string | null>(null);
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [confirmAction, confirmDialog] = useConfirm();
   const incidents = app.incidents ?? [];
   const customers = customersOf(app);
   const settings = reportSettingsOf(app);
@@ -915,6 +925,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
 
   function edit(item: IncidentRow) {
     setEditingId(item.id);
+    setSideCollapsed(false);
     setForm({
       ref: item.ref, customer: item.customer, title: item.title, priority: item.priority, category: item.category, source: item.source,
       status: item.status, analyst: item.analyst, occurredAt: item.occurredAt, detectedAt: item.detectedAt,
@@ -961,14 +972,30 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
   const now16 = () => `${dateKey(new Date())}T${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
   const field = (key: keyof IncidentForm) => ({ value: form[key], onChange: (event: { target: { value: string } }) => setForm({ ...form, [key]: event.target.value }) });
 
+  async function deleteIncident(item: IncidentRow) {
+    const name = [item.ref, item.title].filter(Boolean).join(' · ') || `#${item.id}`;
+    const confirmed = await confirmAction({
+      title: 'Delete incident?',
+      message: (
+        <>
+          <p>Are you sure you want to delete the incident <strong>{name}</strong>?</p>
+          <p>It will no longer count in SLA reports. This action cannot be undone. The deletion is recorded in the audit log.</p>
+        </>
+      ),
+      confirmLabel: 'Delete incident',
+    });
+    if (confirmed) await mutate(`delete-incident-${item.id}`, () => api.deleteRecord('incident', item.id));
+  }
+
   return (
-    <div className="report-register">
+    <div className={canEdit && sideCollapsed ? 'report-register collapsed' : 'report-register'}>
+      {confirmDialog}
       <section className="panel report-register-list">
         <header className="panel-head"><h2>{t("Incident register")}</h2><div className="panel-meta"><span className="muted">{t('incidentCount', { count: incidents.length })}</span></div></header>
         <div className="panel-body">
           <div className="report-filters">
             <select value={filter.customer} onChange={(event) => setFilter({ ...filter, customer: event.target.value })}>
-              <option value="">{t("All customers")}</option>
+              <option value="">{t("All business units")}</option>
               {customers.map((name) => <option key={name} value={name}>{name}</option>)}
             </select>
             <select value={filter.status} onChange={(event) => setFilter({ ...filter, status: event.target.value })}>
@@ -980,7 +1007,7 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
           {visible.length ? (
             <div className="report-table-scroll">
               <table className="grid-table">
-                <thead><tr><th>{t("Ref")}</th><th>{t("Title")}</th><th>{t("Customer")}</th><th>{t("Pri")}</th><th>{t("Detected")}</th><th>{t("TTA")}</th><th>{t("TTR")}</th><th>{t("Status")}</th>{canEdit ? <th className="ta-r">{t("Action")}</th> : null}</tr></thead>
+                <thead><tr><th>{t("Ref")}</th><th>{t("Title")}</th><th>{t("Business Unit")}</th><th>{t("Pri")}</th><th>{t("Detected")}</th><th>{t("TTA")}</th><th>{t("TTR")}</th><th>{t("Status")}</th>{canEdit ? <th className="ta-r">{t("Action")}</th> : null}</tr></thead>
                 <tbody>
                   {visible.slice(0, 300).map((item) => {
                     const m = measureIncident(item, settings, now);
@@ -993,12 +1020,12 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
                         <td className="muted nowrap">{formatStamp(item.detectedAt)}</td>
                         <td className={`nowrap state-${m.ackState}`}>{formatDuration(m.tta)}</td>
                         <td className={`nowrap state-${m.resolveState}`}>{formatDuration(m.ttr)}</td>
-                        <td>{t(item.status)}</td>
+                        <td><span className="status"><span className={`dot ${STATUS_HEALTH[item.status] ?? 'watch'}`} aria-hidden="true" />{t(item.status)}</span></td>
                         {canEdit ? (
                           <td className="ta-r">
                             <div className="action-row">
                               <button type="button" className="icon-btn" onClick={() => edit(item)} title={t("Edit incident")} aria-label={t("Edit incident")}><Pencil size={14} /></button>
-                              {isAdmin ? <button type="button" className="icon-btn" onClick={() => { if (window.confirm(t('Delete incident {{ref}}? It will no longer count in SLA reports. The deletion is logged.', { ref: item.ref || item.id }))) void mutate(`delete-incident-${item.id}`, () => api.deleteRecord('incident', item.id)); }} title={t("Delete incident (Admin only, logged)")} aria-label={t("Delete incident")}><Trash2 size={14} /></button> : null}
+                              {isAdmin ? <button type="button" className="icon-btn danger" onClick={() => void deleteIncident(item)} title={t("Delete incident (Admin only, logged)")} aria-label={t("Delete incident")}><Trash2 size={14} /></button> : null}
                             </div>
                           </td>
                         ) : null}
@@ -1013,15 +1040,26 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
         </div>
       </section>
 
-      {canEdit ? (
+      {canEdit && sideCollapsed ? (
+        <aside className="workforce-controls-rail">
+          <button type="button" className="controls-rail-btn" onClick={() => setSideCollapsed(false)} title="Expand add incident" aria-label="Expand add incident">
+            <ChevronLeft size={16} />
+            <span className="controls-rail-label">{editingId ? t("Edit incident") : t("Add incident")}</span>
+          </button>
+        </aside>
+      ) : null}
+      {canEdit && !sideCollapsed ? (
         <aside className="report-register-side">
           <section className="panel">
-            <header className="panel-head"><h2>{editingId ? t("Edit incident") : t("Add incident")}</h2></header>
+            <header className="panel-head">
+              <h2>{editingId ? t("Edit incident") : t("Add incident")}</h2>
+              <div className="panel-meta"><button type="button" className="icon-btn" onClick={() => setSideCollapsed(true)} title={t("Collapse add incident")} aria-label={t("Collapse add incident")}><ChevronRight size={14} /></button></div>
+            </header>
             <div className="panel-body">
               <form className="form-stack" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
                 <div className="form-grid two">
-                  <label className="field"><span>{t("Ref / ticket")}</span><input {...field('ref')} placeholder={t("INC-1024")} /></label>
-                  <label className="field"><span>{t("Customer")}</span><input {...field('customer')} list="incident-customers" placeholder={t("Customer name")} /></label>
+                  <label className="field"><span>{t("Ref / ticket")}</span><input {...field('ref')} placeholder="INC-1024" /></label>
+                  <label className="field"><span>{t("Business Unit")}</span><input {...field('customer')} list="incident-customers" placeholder={t("e.g. Finance")} /></label>
                 </div>
                 <datalist id="incident-customers">{customers.map((name) => <option key={name} value={name} />)}</datalist>
                 <label className="field"><span>{t("Title")}</span><input {...field('title')} required /></label>
@@ -1076,32 +1114,9 @@ function IncidentRegister({ app, canEdit, isAdmin, busy, mutate }: { app: AppSna
 }
 
 // ---------------------------------------------------------------------------
-// Change history (Admin): who changed incident data or SLA policies, and when
+// Change history (Admin): who changed incident data or SLA policies, and when.
+// The full log across all modules is under Settings → Audit log.
 // ---------------------------------------------------------------------------
-
-const AUDIT_LABELS: Record<string, string> = {
-  'incident.create': 'Added incident',
-  'incident.update': 'Edited incident',
-  'incident.delete': 'Deleted incident',
-  'incidents.import': 'Imported file',
-  'sla-settings.update': 'Changed SLA policies',
-};
-
-function describeAudit(entry: IncidentAuditEntry): string {
-  const details = entry.details ?? {};
-  if (entry.action === 'incidents.import') {
-    return `${details.added ?? 0} added, ${details.updated ?? 0} updated, ${details.skipped ?? 0} skipped`;
-  }
-  const fields = Object.keys(details).filter((key) => key !== 'id' && key !== 'format' && key !== 'sha256');
-  if (entry.action === 'incident.update') {
-    return fields.length ? fields.map((key) => {
-      const pair = details[key] as [string, string];
-      return `${key}: ${pair?.[0] || '—'} → ${pair?.[1] || '—'}`;
-    }).join('; ') : 'no SLA-relevant change';
-  }
-  if (entry.action === 'sla-settings.update') return fields.join(', ');
-  return '';
-}
 
 function IncidentHistory({ refreshKey }: { refreshKey: number }) {
   const [entries, setEntries] = useState<IncidentAuditEntry[] | null>(null);
@@ -1125,7 +1140,7 @@ function IncidentHistory({ refreshKey }: { refreshKey: number }) {
             {entries.slice(0, 50).map((entry) => (
               <li key={entry.id}>
                 <div className="audit-head">
-                  <strong>{t(AUDIT_LABELS[entry.action] ?? entry.action)}</strong>
+                  <strong>{auditActionLabel(entry.action)}</strong>
                   <span className="muted"> · {entry.target}</span>
                 </div>
                 <div className="muted small">{new Date(entry.at).toLocaleString(getLocale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })} · {entry.username || 'system'}{entry.role ? ` (${entry.role})` : ''}</div>

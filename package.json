@@ -1,12 +1,12 @@
 {
   "name": "soc-cockpit",
-  "version": "0.3.0-beta.1",
+  "version": "0.3.1-beta.1",
   "description": "Web-based SOC governance cockpit for service and operations management.",
   "license": "Apache-2.0",
   "main": "server/app.cjs",
   "type": "module",
   "engines": {
-    "node": ">=22.5.0"
+    "node": ">=22.18.0"
   },
   "scripts": {
     "dev": "concurrently \"npm:dev:web\" \"npm:dev:api\"",
@@ -27,7 +27,7 @@
     "i18next": "27.1.1",
     "i18next-browser-languagedetector": "8.3.0",
     "ldapts": "9.2.0",
-    "lucide-react": "1.63.0",
+    "lucide-react": "1.64.0",
     "multer": "2.5.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",

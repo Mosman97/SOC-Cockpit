@@ -159,7 +159,7 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
       </section>
 
       <section className="panel">
-        <header className="panel-head"><h2>{t("Standard SLA targets")}</h2><div className="panel-meta"><span className="muted">{t("used for every customer without its own SLA")}</span></div></header>
+        <header className="panel-head"><h2>{t("Standard SLA targets")}</h2><div className="panel-meta"><span className="muted">{t("used for every business unit without its own SLA")}</span></div></header>
         <div className="panel-body form-stack">
           <TargetsTable targets={draft.slaTargets} onChange={(next) => setDraft({ ...draft, slaTargets: next })} />
           <small className="muted"><Trans i18nKey="Type durations such as <minutes>15m</minutes>, <hours>4h</hours> or <days>1d 2h</days>. Set Detect to <disabled>off</disabled> if detection time is not measured for that priority." components={{ minutes: <code />, hours: <code />, days: <code />, disabled: <code /> }} /></small>
@@ -167,26 +167,26 @@ export function SlaPolicySettings({ app, busy, mutate }: { app: AppSnapshot; bus
       </section>
 
       <section className="panel">
-        <header className="panel-head"><h2>{t("Customer-specific SLAs")}</h2><div className="panel-meta"><span className="muted">{t('customerContracts', { count: overrideNames.length })}</span></div></header>
+        <header className="panel-head"><h2>{t("Business unit SLAs")}</h2><div className="panel-meta"><span className="muted">{t('businessUnitContracts', { count: overrideNames.length })}</span></div></header>
         <div className="panel-body form-stack">
           <div className="report-inline">
-            <input list="sla-customers" placeholder={t("Customer name")} value={newCustomer} onChange={(event) => setNewCustomer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addOverride(); } }} />
+            <input list="sla-customers" placeholder={t("Business unit name")} value={newCustomer} onChange={(event) => setNewCustomer(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addOverride(); } }} />
             <datalist id="sla-customers">{knownCustomers.map((name) => <option key={name} value={name} />)}</datalist>
-            <button type="button" className="ghost-btn" onClick={addOverride} disabled={!newCustomer.trim() || Boolean(draft.customerSla[newCustomer.trim()])}><Plus size={14} /> {t("Add customer SLA")}</button>
+            <button type="button" className="ghost-btn" onClick={addOverride} disabled={!newCustomer.trim() || Boolean(draft.customerSla[newCustomer.trim()])}><Plus size={14} /> {t("Add business unit SLA")}</button>
           </div>
-          <small className="muted">{t("A new customer SLA starts as a copy of the standard targets. Customer names must match the incident register exactly.")}</small>
+          <small className="muted">{t("A new customer SLA starts as a copy of the standard targets. Business unit names must match the incident register exactly.")}</small>
           {overrideNames.length ? overrideNames.map((name) => (
             <div key={name} className="sla-customer">
               <div className="sla-customer-head">
                 <strong>{name}</strong>
-                {!customersOf(app).includes(name) ? <span className="sla-warning">{t("no incidents with this customer name yet")}</span> : null}
+                {!customersOf(app).includes(name) ? <span className="sla-warning">{t("no incidents for this business unit yet")}</span> : null}
                 <span className="report-toolbar-spacer" />
                 <button type="button" className="ghost-btn" onClick={() => setDraft({ ...draft, customerSla: { ...draft.customerSla, [name]: cloneTargets(draft.slaTargets) } })} title={t("Reset to the standard targets")}><RotateCcw size={14} /> {t("Reset")}</button>
-                <button type="button" className="ghost-btn" onClick={() => removeOverride(name)} title={t("Remove this customer SLA")}><Trash2 size={14} /> {t("Remove")}</button>
+                <button type="button" className="ghost-btn" onClick={() => removeOverride(name)} title={t("Remove this business unit SLA")}><Trash2 size={14} /> {t("Remove")}</button>
               </div>
               <TargetsTable targets={draft.customerSla[name]} base={draft.slaTargets} onChange={(next) => setDraft({ ...draft, customerSla: { ...draft.customerSla, [name]: next } })} />
             </div>
-          )) : <p className="muted">{t("No customer-specific SLAs. Every customer is measured against the standard targets.")}</p>}
+          )) : <p className="muted">{t("No business unit SLAs. Every business unit is measured against the standard targets.")}</p>}
         </div>
       </section>
 
